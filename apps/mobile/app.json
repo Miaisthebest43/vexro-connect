@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "VEXRO Connect",
+    "slug": "vexro-connect",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "vexro",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vexro.connect"
+    },
+    "android": {
+      "package": "com.vexro.connect"
+    }
+  }
+}

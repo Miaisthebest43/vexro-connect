@@ -52,7 +52,7 @@ export async function authRoutes(app: FastifyInstance) {
     await createSession(user.id, token, { userAgent: req.headers['user-agent'] });
     setSessionCookie(reply, token);
 
-    return reply.code(201).send({ user });
+    return reply.code(201).send({ user, token });
   });
 
   app.post('/auth/login', {
@@ -67,15 +67,11 @@ export async function authRoutes(app: FastifyInstance) {
     const result = await query<{
       id: string; email: string; username: string; password_hash: string;
     }>(`SELECT id, email, username, password_hash FROM users WHERE email = $1`, [email]);
-
     const user = result.rows[0];
-    if (!user) {
-      return reply.code(401).send({ error: 'Invalid email or password' });
-    }
+
+    if (!user) return reply.code(401).send({ error: 'Invalid email or password' });
     const ok = await verifyPassword(user.password_hash, password);
-    if (!ok) {
-      return reply.code(401).send({ error: 'Invalid email or password' });
-    }
+    if (!ok) return reply.code(401).send({ error: 'Invalid email or password' });
 
     const token = generateSessionToken();
     await createSession(user.id, token, { userAgent: req.headers['user-agent'] });
@@ -83,16 +79,19 @@ export async function authRoutes(app: FastifyInstance) {
 
     return reply.send({
       user: { id: user.id, email: user.email, username: user.username },
+      token,
     });
   });
 
   app.post('/auth/logout', async (req, reply) => {
+    const auth = req.headers.authorization;
+    if (auth && auth.startsWith('Bearer ')) {
+      await deleteSession(auth.slice(7).trim());
+    }
     const raw = req.cookies[SESSION_COOKIE];
     if (raw) {
       const unsigned = req.unsignCookie(raw);
-      if (unsigned.valid && unsigned.value) {
-        await deleteSession(unsigned.value);
-      }
+      if (unsigned.valid && unsigned.value) await deleteSession(unsigned.value);
     }
     reply.clearCookie(SESSION_COOKIE, { path: '/' });
     return reply.send({ ok: true });
