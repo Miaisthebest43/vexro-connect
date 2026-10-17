@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "2f56cad6-8452-4536-8016-e96cd4848757"
+      }
+    },
+    "android": {
+      "package": "com.lastdevv.vexroconnect"
+    }
+  }
+}

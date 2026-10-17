@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { LiveKitRoom, VideoView, useTracks, AudioSession, useRoomContext } from '@livekit/react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { LiveKitRoom, useTracks, AudioSession, useRoomContext } from '@livekit/react-native';
 import { Track } from 'livekit-client';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
@@ -8,6 +8,11 @@ import { getToken, API_URL } from '../lib/api';
 import { colors } from '../theme/colors';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Voice'>;
+
+// Fix the IP for the emulator vs physical device
+const LIVEKIT_HOST = Platform.OS === 'android' && API_URL.includes('10.0.0.148') 
+  ? 'ws://10.0.2.2:7880' 
+  : 'ws://10.0.0.148:7880';
 
 export default function VoiceScreen({ route, navigation }: Props) {
   const { channelId, channelName } = route.params;
@@ -23,26 +28,30 @@ export default function VoiceScreen({ route, navigation }: Props) {
           headers: { Authorization: `Bearer ${authToken}` },
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+        if (!res.ok) throw new Error(data.error || 'Failed to get token');
         setToken(data.token);
-      } catch (e: any) { setError(e.message); }
+      } catch (e: any) { 
+        console.error('Voice Token Error:', e);
+        setError(e.message); 
+      }
     })();
-    
+
     AudioSession.startAudioSession();
     return () => { AudioSession.stopAudioSession(); };
   }, [channelId]);
 
-  if (error) return <View style={styles.center}><Text style={styles.text}>Error: {error}</Text></View>;
-  if (!token) return <View style={styles.center}><ActivityIndicator size="large" color={colors.accent} /></View>;
+  if (error) return <View style={styles.center}><Text style={styles.errorText}>Error: {error}</Text></View>;
+  if (!token) return <View style={styles.center}><ActivityIndicator size="large" color={colors.accent} /><Text style={styles.loadingText}>Fetching token...</Text></View>;
 
   return (
     <LiveKitRoom
-      serverUrl="ws://10.0.0.148:7880"
+      serverUrl={LIVEKIT_HOST}
       token={token}
       connect={true}
       audio={true}
       video={false}
       onDisconnected={() => navigation.goBack()}
+      onError={(e) => setError(e.message)}
       style={{ flex: 1, backgroundColor: colors.bg }}
     >
       <VoiceRoomUI channelName={channelName} />
@@ -81,7 +90,8 @@ function VoiceRoomUI({ channelName }: { channelName: string }) {
 
 const styles = StyleSheet.create({
   center: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' },
-  text: { color: 'red', fontSize: 16 },
+  errorText: { color: colors.danger, fontSize: 16, padding: 24, textAlign: 'center' },
+  loadingText: { color: colors.textDim, marginTop: 12 },
   container: { flex: 1, backgroundColor: colors.bg },
   header: { paddingTop: 80, paddingHorizontal: 24, alignItems: 'center' },
   title: { color: colors.text, fontSize: 24, fontWeight: '800' },
