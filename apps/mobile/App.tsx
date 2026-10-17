@@ -8,12 +8,16 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
+import ChannelsScreen from './src/screens/ChannelsScreen';
+import ChatScreen from './src/screens/ChatScreen';
 import { colors } from './src/theme/colors';
 
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   Dashboard: undefined;
+  Channels: { serverId: string; serverName: string };
+  Chat: { channelId: string; channelName: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -38,7 +42,11 @@ function RootNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {user ? (
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <>
+          <Stack.Screen name="Dashboard" component={DashboardScreen} />
+          <Stack.Screen name="Channels" component={ChannelsScreen} />
+          <Stack.Screen name="Chat" component={ChatScreen} />
+        </>
       ) : (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />

@@ -3,6 +3,9 @@ import * as SecureStore from 'expo-secure-store';
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
 const TOKEN_KEY = 'vexro_token';
 
+export const WS_URL = API_URL.replace(/^http/, 'ws') + '/ws';
+export { API_URL };
+
 export async function getToken(): Promise<string | null> {
   return SecureStore.getItemAsync(TOKEN_KEY);
 }
@@ -23,9 +26,7 @@ async function request<T>(
 ): Promise<T> {
   const { method = 'GET', body, auth = false } = options;
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
   if (auth) {
     const token = await getToken();
@@ -55,6 +56,30 @@ export interface User {
   username: string;
 }
 
+export interface Server {
+  id: string;
+  name: string;
+  owner_id: string;
+  created_at: string;
+}
+
+export interface Channel {
+  id: string;
+  name: string;
+}
+
+export interface ServerWithChannels extends Server {
+  channels: Channel[];
+}
+
+export interface Message {
+  id: string;
+  content: string;
+  created_at: string;
+  author_id: string;
+  username: string;
+}
+
 export const api = {
   register: (email: string, username: string, password: string) =>
     request<{ user: User; token: string }>('/auth/register', {
@@ -71,4 +96,33 @@ export const api = {
   me: () => request<{ user: User }>('/auth/me', { auth: true }),
 
   logout: () => request<{ ok: boolean }>('/auth/logout', { method: 'POST', auth: true }),
+
+  listServers: () => request<{ servers: Server[] }>('/servers', { auth: true }),
+
+  createServer: (name: string) =>
+    request<{ server: ServerWithChannels }>('/servers', {
+      method: 'POST',
+      body: { name },
+      auth: true,
+    }),
+
+  getServer: (id: string) =>
+    request<{ server: ServerWithChannels }>(`/servers/${id}`, { auth: true }),
+
+  createChannel: (serverId: string, name: string) =>
+    request<{ channel: Channel }>(`/servers/${serverId}/channels`, {
+      method: 'POST',
+      body: { name },
+      auth: true,
+    }),
+
+  listMessages: (channelId: string) =>
+    request<{ messages: Message[] }>(`/channels/${channelId}/messages`, { auth: true }),
+
+  sendMessage: (channelId: string, content: string) =>
+    request<{ message: Message }>(`/channels/${channelId}/messages`, {
+      method: 'POST',
+      body: { content },
+      auth: true,
+    }),
 };
