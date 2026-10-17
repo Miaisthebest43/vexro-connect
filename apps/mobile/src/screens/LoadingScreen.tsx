@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../theme/colors';
 
 export default function LoadingScreen() {
@@ -7,82 +8,30 @@ export default function LoadingScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Fade in
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 800,
-      useNativeDriver: true,
-    }).start();
-
-    // Pulse loop
+    Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }).start();
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
+        Animated.timing(pulseAnim, { toValue: 1.05, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
       ])
     ).start();
   }, [pulseAnim, fadeAnim]);
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={colors.gradientAccent} style={styles.container}>
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
         <Animated.Text style={[styles.logo, { transform: [{ scale: pulseAnim }] }]}>
           VEXRO
         </Animated.Text>
         <Text style={styles.tagline}>Your people. Your space. Your rules.</Text>
-        
-        <View style={styles.loaderContainer}>
-          <View style={styles.loaderBar} />
-        </View>
       </Animated.View>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: {
-    alignItems: 'center',
-  },
-  logo: {
-    fontSize: 56,
-    fontWeight: '900',
-    color: colors.text,
-    letterSpacing: 8,
-    marginBottom: 16,
-  },
-  tagline: {
-    fontSize: 14,
-    color: colors.textDim,
-    letterSpacing: 1,
-    marginBottom: 48,
-  },
-  loaderContainer: {
-    width: 200,
-    height: 4,
-    backgroundColor: colors.card,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  loaderBar: {
-    width: '50%',
-    height: '100%',
-    backgroundColor: colors.accent,
-    borderRadius: 2,
-  },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  content: { alignItems: 'center' },
+  logo: { fontSize: 56, fontWeight: '900', color: '#fff', letterSpacing: 8, marginBottom: 16 },
+  tagline: { fontSize: 14, color: 'rgba(255,255,255,0.6)', letterSpacing: 1 },
 });
