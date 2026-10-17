@@ -27,21 +27,32 @@ export default function ChatScreen({ route, navigation }: Props) {
     setText('');
     try {
       await api.sendMessage(channelId, content);
-      // message will arrive via WS, but scroll anyway
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
     } catch (e: any) {
       Alert.alert('Failed to send', e.message);
       setText(content);
-    } finally {
-      setSending(false);
-    }
+    } finally { setSending(false); }
+  }
+
+  function onLongPress(msgId: string, authorId: string) {
+    const mine = authorId === user?.id;
+    Alert.alert('Message', mine ? 'Delete this message?' : 'What do you want to do?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try { await api.deleteMessage(msgId); }
+          catch (e: any) { Alert.alert('Failed', e.message); }
+        },
+      },
+    ]);
   }
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
-      keyboardVerticalOffset={0}
     >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -63,17 +74,19 @@ export default function ChatScreen({ route, navigation }: Props) {
           renderItem={({ item }) => {
             const mine = item.author_id === user?.id;
             return (
-              <View style={[styles.msgRow, mine && styles.msgRowMine]}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onLongPress={() => onLongPress(item.id, item.author_id)}
+                style={[styles.msgRow, mine && styles.msgRowMine]}
+              >
                 <View style={[styles.bubble, mine && styles.bubbleMine]}>
                   {!mine && <Text style={styles.author}>@{item.username}</Text>}
                   <Text style={styles.content}>{item.content}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           }}
-          ListEmptyComponent={
-            <Text style={styles.empty}>No messages yet. Say hi ðŸ‘‹</Text>
-          }
+          ListEmptyComponent={<Text style={styles.empty}>No messages yet. Say hi ðŸ‘‹</Text>}
         />
       )}
 

@@ -7,7 +7,6 @@ export function useChannel(channelId: string) {
   const [loading, setLoading] = useState(true);
   const wsRef = useRef<WebSocket | null>(null);
 
-  // Load history + connect WS
   useEffect(() => {
     let cancelled = false;
     let ws: WebSocket | null = null;
@@ -16,11 +15,8 @@ export function useChannel(channelId: string) {
       try {
         const { messages } = await api.listMessages(channelId);
         if (!cancelled) setMessages(messages);
-      } catch (e) {
-        // ignore
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      } catch {}
+      finally { if (!cancelled) setLoading(false); }
 
       const token = await getToken();
       if (!token || cancelled) return;
@@ -32,16 +28,16 @@ export function useChannel(channelId: string) {
         setConnected(true);
         ws?.send(JSON.stringify({ type: 'subscribe', channelId }));
       };
-
       ws.onmessage = (ev) => {
         try {
           const msg = JSON.parse(ev.data);
-          if (msg.type === 'message' && msg.channelId === channelId) {
-            setMessages((prev) => [...prev, msg.message]);
+          if (msg.channelId !== channelId) return;
+          if (msg.type === 'message') setMessages((prev) => [...prev, msg.message]);
+          if (msg.type === 'message_deleted') {
+            setMessages((prev) => prev.filter((m) => m.id !== msg.messageId));
           }
         } catch {}
       };
-
       ws.onclose = () => setConnected(false);
       ws.onerror = () => setConnected(false);
     })();
