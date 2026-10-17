@@ -3,6 +3,10 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
+
+// Keep the native splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { usePush } from './src/lib/usePush';
@@ -11,13 +15,17 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import ChannelsScreen from './src/screens/ChannelsScreen';
 import ChatScreen from './src/screens/ChatScreen';
+import VoiceScreen from './src/screens/VoiceScreen';
 import MembersScreen from './src/screens/MembersScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import ServerSettingsScreen from './src/screens/ServerSettingsScreen';
 import FriendsScreen from './src/screens/FriendsScreen';
-import VoiceScreen from './src/screens/VoiceScreen';
+import LoadingScreen from './src/screens/LoadingScreen';
 import { colors } from './src/theme/colors';
+import { registerGlobals } from '@livekit/react-native';
+
+registerGlobals();
 
 export type RootStackParamList = {
   Login: undefined;
@@ -25,12 +33,12 @@ export type RootStackParamList = {
   Dashboard: undefined;
   Channels: { serverId: string; serverName: string };
   Chat: { serverId: string; channelId: string; channelName: string };
+  Voice: { channelId: string; channelName: string };
   Members: { serverId: string; serverName: string };
   Profile: { userId: string };
   Settings: undefined;
   ServerSettings: { serverId: string; serverName: string };
   Friends: undefined;
-  Voice: { channelId: string; channelName: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -39,7 +47,19 @@ const navTheme = { ...DarkTheme, colors: { ...DarkTheme.colors, background: colo
 function RootNavigator() {
   const { user, loading } = useAuth();
   usePush(!!user);
-  if (loading) return null;
+
+  React.useEffect(() => {
+    if (!loading) {
+      // Hide the native splash screen once AuthProvider finishes loading
+      SplashScreen.hideAsync();
+    }
+  }, [loading]);
+
+  if (loading) {
+    // Show our custom animated loading screen
+    return <LoadingScreen />;
+  }
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {user ? (
