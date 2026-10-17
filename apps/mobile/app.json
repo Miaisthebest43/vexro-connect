@@ -6,17 +6,51 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "scheme": "vexro",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.vexro.connect",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
+        "NSMicrophoneUsageDescription": "VEXRO needs your microphone for voice chat.",
+        "NSCameraUsageDescription": "VEXRO uses your camera for video.",
+        "NSPhotoLibraryUsageDescription": "VEXRO lets you share photos."
+      },
+      "bitcode": false
     },
     "android": {
-      "package": "com.vexro.connect"
+      "package": "com.vexro.connect",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WAKE_LOCK",
+        "android.permission.BLUETOOTH"
+      ]
     },
+    "plugins": [
+      "expo-dev-client",
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc",
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "VEXRO needs photo access to share images."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "gradleProperties": {
+              "android.enableDexingArtifactTransform.desugaring": "false"
+            }
+          }
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "2f56cad6-8452-4536-8016-e96cd4848757"
