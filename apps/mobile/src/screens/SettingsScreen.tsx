@@ -6,6 +6,7 @@ import type { RootStackParamList } from '../../App';
 import { useAuth } from '../context/AuthContext';
 import { uploadFile, absUrl, api } from '../lib/api';
 import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
@@ -18,6 +19,7 @@ const STATUSES: Array<{ key: 'online' | 'idle' | 'dnd' | 'offline'; label: strin
 
 export default function SettingsScreen({ navigation }: Props) {
   const { user, refreshUser } = useAuth();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [uploading, setUploading] = useState(false);
   const [bio, setBio] = useState(user?.bio ?? '');
   const [saving, setSaving] = useState(false);
@@ -67,7 +69,12 @@ export default function SettingsScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Bio</Text>
+        <TouchableOpacity onPress={toggleTheme} style={{ padding: 16, backgroundColor: colors.card, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: colors.border }}>
+          <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>🎨 Appearance</Text>
+          <Text style={{ color: colors.textDim, marginTop: 4, fontSize: 13 }}>Current: {theme === 'dark' ? 'Dark' : 'Light'} mode (Tap to toggle)</Text>
+        </TouchableOpacity>
+
+      <Text style={styles.sectionTitle}>Bio</Text>
         <TextInput style={styles.input} value={bio} onChangeText={setBio} placeholder="Tell people about yourself" placeholderTextColor={colors.textDim} maxLength={200} multiline />
         <TouchableOpacity onPress={onSaveBio} disabled={saving} style={styles.saveBtn}>
           <Text style={styles.saveText}>{saving ? 'Savingâ€¦' : 'Save bio'}</Text>
@@ -75,7 +82,12 @@ export default function SettingsScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Status</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Sessions')} style={{ padding: 16, backgroundColor: colors.card, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: colors.border }}>
+          <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>💻 Active Sessions</Text>
+          <Text style={{ color: colors.textDim, marginTop: 4, fontSize: 13 }}>Manage devices logged into your account.</Text>
+        </TouchableOpacity>
+
+      <Text style={styles.sectionTitle}>Status</Text>
         {STATUSES.map((s) => (
           <TouchableOpacity key={s.key} style={styles.statusRow} onPress={() => onSetStatus(s.key)}>
             <View style={[styles.statusDot, { backgroundColor: s.color }]} />

@@ -33,8 +33,9 @@ export default function DashboardScreen({ navigation }: Props) {
   async function onCreate() {
     if (!newName.trim()) return;
     try {
-      const { server } = await api.createServer(newName.trim());
+      const { server } = await api.createServer(newName.trim(), template);
       setNewName(''); setCreating(false);
+      showToast(`Created "${server.name}"`, 'success');
       navigation.navigate('Channels', { serverId: server.id, serverName: server.name });
     } catch (e: any) { Alert.alert('Failed', e.message); }
   }
@@ -111,7 +112,15 @@ export default function DashboardScreen({ navigation }: Props) {
       <Modal visible={creating} transparent animationType="fade" onRequestClose={() => setCreating(false)}>
         <View style={styles.modalBg}><View style={styles.modalCard}>
           <Text style={styles.modalTitle}>Create Server</Text>
-          <TextInput style={styles.modalInput} placeholder="Server Name" placeholderTextColor={colors.textMuted} value={newName} onChangeText={setNewName} autoFocus />
+          <Text style={{ color: colors.textDim, fontSize: 12, fontWeight: '700', marginBottom: 8 }}>TEMPLATE</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+              {(['blank', 'gaming', 'creator', 'developer', 'friends'] as const).map(t => (
+                <TouchableOpacity key={t} onPress={() => setTemplate(t)} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: template === t ? colors.accent : colors.bg4, borderWidth: 1, borderColor: template === t ? colors.accent : colors.border }}>
+                  <Text style={{ color: template === t ? '#fff' : colors.text, fontSize: 12, fontWeight: '600', textTransform: 'capitalize' }}>{t}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput style={styles.modalInput} placeholder="Server Name" placeholderTextColor={colors.textMuted} value={newName} onChangeText={setNewName} autoFocus />
           <View style={styles.modalRow}>
             <TouchableOpacity onPress={() => setCreating(false)} style={styles.cancelBtn}><Text style={styles.cancelText}>Cancel</Text></TouchableOpacity>
             <TouchableOpacity onPress={onCreate} style={styles.confirmBtn}><Text style={styles.confirmText}>Create</Text></TouchableOpacity>

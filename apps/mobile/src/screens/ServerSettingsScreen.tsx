@@ -28,7 +28,7 @@ export default function ServerSettingsScreen({ route, navigation }: Props) {
       setServer(r.server); setName(r.server.name);
       const m = await api.listMembers(serverId); setMembers(m.members);
       const i = await api.listInvites(serverId); setInvites(i.invites);
-      const r = await api.getRoles(serverId); setRoles(r.roles);
+      const rolesRes = await api.getRoles(serverId); setRoles(rolesRes.roles);
     } catch (e: any) { Alert.alert('Failed', e.message); }
     finally { setLoading(false); }
   }, [serverId]);

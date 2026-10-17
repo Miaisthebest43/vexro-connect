@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Modal, Pressable, Image, Animated, Dimensions } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { useChannel } from '../lib/useChannel';
+import EmojiPicker from '../components/EmojiPicker';
+import MemberSidebar from '../components/MemberSidebar';
 import { usePresence, statusColor } from '../lib/usePresence';
 import { api, uploadFile, absUrl, type Message, type Member } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -52,6 +55,8 @@ export default function ChatScreen({ route, navigation }: Props) {
   const [editing, setEditing] = useState<Message | null>(null);
   const [editText, setEditText] = useState('');
   const [pickerFor, setPickerFor] = useState<Message | null>(null);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const listRef = useRef<FlatList>(null);
@@ -93,6 +98,21 @@ export default function ChatScreen({ route, navigation }: Props) {
     return members.filter((m) => m.id !== user?.id && (m.username.toLowerCase().startsWith(q) || (m.nickname ?? '').toLowerCase().startsWith(q))).slice(0, 5);
   }, [mentionQuery, members, user?.id]);
 
+  async function onPickFile() {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({ type: '*/*' });
+      if (res.canceled) return;
+      const file = res.assets[0];
+      const uploaded = await uploadFile('/upload/attachment', file.uri, file.mimeType ?? 'application/octet-stream');
+      await api.sendMessage(channelId, {
+        content: text.trim(),
+        attachment_url: uploaded.url,
+        attachment_type: 'file',
+      });
+      setText('');
+    } catch (e: any) { Alert.alert('Upload failed', e.message); }
+  }
+
   async function onSend() {
     const content = text.trim();
     if (!content || sending) return;
@@ -125,6 +145,7 @@ export default function ChatScreen({ route, navigation }: Props) {
     const mine = msg.author_id === user?.id;
     const opts: any[] = [
       { text: 'Reply', onPress: () => setReplyTo(msg) },
+      { text: 'Reply in Thread', onPress: () => navigation.navigate('Thread', { channelId, parentId: msg.id, parentContent: msg.content }) },
       { text: 'React', onPress: () => setPickerFor(msg) },
       { text: 'View profile', onPress: () => navigation.navigate('Profile', { userId: msg.author_id }) },
       { text: msg.pinned ? 'Unpin' : 'Pin', onPress: async () => { try { await api.togglePin(msg.id); } catch (e: any) { Alert.alert('Failed', e.message); } } },
@@ -235,7 +256,12 @@ export default function ChatScreen({ route, navigation }: Props) {
                     <Pressable onLongPress={() => onLongPress(item)} delayLongPress={300}>
                       {imgUrl && <Image source={{ uri: imgUrl }} style={[styles.attachment, { aspectRatio: aspect }]} resizeMode="cover" />}
                       {item.content ? <Text style={styles.messageContent}>{renderContent(item.content)}</Text> : null}
-                      {item.edited_at && <Text style={styles.edited}>(edited)</Text>}
+                      {item.thread_count > 0 && (
+                    <TouchableOpacity onPress={() => navigation.navigate('Thread', { channelId, parentId: item.id, parentContent: item.content })} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                      <Text style={{ color: colors.accent, fontSize: 12 }}>💬 {item.thread_count} replies</Text>
+                    </TouchableOpacity>
+                  )}
+                  {item.edited_at && <Text style={styles.edited}>(edited)</Text>}
                     </Pressable>
                     {item.reactions && item.reactions.length > 0 && (
                       <View style={styles.reactionsRow}>
@@ -339,25 +365,25 @@ export default function ChatScreen({ route, navigation }: Props) {
         </View>
       </Modal>
 
-      <Modal visible={!!pickerFor} transparent animationType="fade" onRequestClose={() => setPickerFor(null)}>
-        <Pressable style={styles.modalBg} onPress={() => setPickerFor(null)}>
-          <View style={styles.pickerCard}>
-            <View style={styles.pickerGrid}>
-              {QUICK_REACTIONS.map((e) => (
-                <TouchableOpacity key={e} style={styles.pickerEmoji} onPress={() => onReact(e)}>
-                  <Text style={styles.pickerEmojiText}>{e}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </Pressable>
-      </Modal>
+      <EmojiPicker
+        visible={!!pickerFor}
+        onClose={() => setPickerFor(null)}
+        onSelect={async (emoji) => {
+          if (pickerFor) {
+            try {
+              const res = await api.toggleReaction(pickerFor.id, emoji);
+              updateReactions(pickerFor.id, res.reactions);
+            } catch {}
+            setPickerFor(null);
+          }
+        }}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, flexDirection: "row", backgroundColor: colors.bg },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 52, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
   hamburger: { padding: 8, marginRight: 4 },
   hamburgerText: { color: colors.text, fontSize: 22 },

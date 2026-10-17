@@ -58,7 +58,7 @@ export const api = {
     request<{ ok: boolean }>('/me', { method: 'PATCH', body, auth: true }),
 
   listServers: () => request<{ servers: Server[] }>('/servers', { auth: true }),
-  createServer: (name: string) => request<{ server: ServerDetail }>('/servers', { method: 'POST', body: { name }, auth: true }),
+  createServer: (name: string, template: string = 'blank') => request<{ server: ServerDetail }>('/servers', { method: 'POST', body: { name, template }, auth: true }),
   getServer: (id: string) => request<{ server: ServerDetail; unread: Record<string, number>; myRole: string }>(`/servers/${id}`, { auth: true }),
   updateServer: (id: string, body: { name?: string; icon_url?: string }) =>
     request<{ server: Server }>(`/servers/${id}`, { method: 'PATCH', body, auth: true }),
@@ -115,6 +115,16 @@ export const api = {
   createRole: (serverId: string, name: string, color: string) => request<{ role: any }>(`/servers/${serverId}/roles`, { method: 'POST', body: { name, color }, auth: true }),
   getRoles: (serverId: string) => request<{ roles: any[] }>(`/servers/${serverId}/roles`, { auth: true }),
   searchMessages: (channelId: string, q: string) => request<{ messages: any[] }>(`/channels/${channelId}/search?q=${encodeURIComponent(q)}`, { auth: true }),
+  getRoles: (serverId: string) => request<{ roles: any[] }>(`/servers/${serverId}/roles`, { auth: true }),
+  createRole: (serverId: string, name: string, color: string, permissions?: string[]) => request<{ role: any }>(`/servers/${serverId}/roles`, { method: 'POST', body: { name, color, permissions: permissions || [] }, auth: true }),
+  updateRole: (roleId: string, body: any) => request<{ ok: boolean }>(`/roles/${roleId}`, { method: 'PATCH', body, auth: true }),
+  getReports: (serverId: string) => request<{ reports: any[] }>(`/servers/${serverId}/reports`, { auth: true }),
+  resolveReport: (reportId: string, action: 'dismiss' | 'resolve') => request<{ ok: boolean }>(`/reports/${reportId}`, { method: 'PATCH', body: { action }, auth: true }),
+  listSessions: () => request<{ sessions: any[] }>('/sessions', { auth: true }),
+  revokeSession: (id: string) => request<{ ok: boolean }>(`/sessions/${id}`, { method: 'DELETE', auth: true }),
+  getThread: (channelId: string, parentId: string) => request<{ messages: any[] }>(`/channels/${channelId}/messages?parent_id=${parentId}`, { auth: true }),
+  createGroupDM: (name: string, userIds: string[]) => request<{ channelId: string }>('/dms/group', { method: 'POST', body: { name, userIds }, auth: true }),
+  listGroupDMs: () => request<{ dms: any[] }>('/dms/group', { auth: true }),
   getProfile: (userId: string) =>
     request<{ user: { id: string; username: string; bio: string | null; avatar_url: string | null; created_at: string; status: string; message_count: number; server_count: number } }>(`/users/${userId}`, { auth: true }),
 };

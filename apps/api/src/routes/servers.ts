@@ -3,7 +3,30 @@ import { z } from 'zod';
 import { query } from '../lib/db.js';
 import { getMemberRole, can } from '../lib/permissions.js';
 
-const createServerSchema = z.object({ name: z.string().trim().min(2).max(64) });
+const TEMPLATES: Record<string, { categories: { name: string; channels: string[] }[] }> = {
+  blank: { categories: [{ name: 'Text Channels', channels: ['general'] }] },
+  gaming: { categories: [
+    { name: 'INFORMATION', channels: ['welcome', 'announcements', 'rules'] },
+    { name: 'COMMUNITY', channels: ['general', 'looking-for-group', 'clips'] },
+    { name: 'GAMING', channels: ['gaming-chat', 'highlights', 'strategies'] }
+  ]},
+  creator: { categories: [
+    { name: 'START HERE', channels: ['welcome', 'announcements', 'content-calendar'] },
+    { name: 'CONTENT', channels: ['general', 'idea-vault', 'collab-requests'] },
+    { name: 'MONETIZATION', channels: ['brand-deals', 'tips-and-tricks'] }
+  ]},
+  developer: { categories: [
+    { name: 'PROJECT', channels: ['readme', 'roadmap', 'changelog'] },
+    { name: 'DEV', channels: ['general', 'help', 'showcase'] },
+    { name: 'META', channels: ['standup', 'retros'] }
+  ]},
+  friends: { categories: [{ name: 'Hangout', channels: ['general', 'memes', 'plans'] }] }
+};
+
+const createServerSchema = z.object({
+  name: z.string().trim().min(2).max(64),
+  template: z.enum(['blank', 'gaming', 'creator', 'developer', 'friends']).default('blank')
+});
 const createChannelSchema = z.object({
   name: z.string().trim().min(1).max(32).regex(/^[a-z0-9-]+$/),
   category_id: z.string().uuid().optional(),

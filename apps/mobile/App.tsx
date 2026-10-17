@@ -22,6 +22,9 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import ServerSettingsScreen from './src/screens/ServerSettingsScreen';
 import FriendsScreen from './src/screens/FriendsScreen';
 import LoadingScreen from './src/screens/LoadingScreen';
+import { ToastProvider } from './src/components/Toast';
+import { ThemeProvider } from './src/theme/ThemeContext';
+import ThreadScreen from './src/screens/ThreadScreen';
 import { colors } from './src/theme/colors';
 import { registerGlobals } from '@livekit/react-native';
 
@@ -33,6 +36,7 @@ export type RootStackParamList = {
   Dashboard: undefined;
   Channels: { serverId: string; serverName: string };
   Chat: { serverId: string; channelId: string; channelName: string };
+  Thread: { channelId: string; parentId: string; parentContent: string };
   Voice: { channelId: string; channelName: string };
   Members: { serverId: string; serverName: string };
   Profile: { userId: string };
@@ -66,7 +70,7 @@ function RootNavigator() {
         <>
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen name="Channels" component={ChannelsScreen} />
-          <Stack.Screen name="Chat" component={ChatScreen} />
+          <Stack.Screen name="Chat" component={ChatScreen} />`n          <Stack.Screen name="Thread" component={ThreadScreen} />
           <Stack.Screen name="Voice" component={VoiceScreen} />
           <Stack.Screen name="Members" component={MembersScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
@@ -86,13 +90,15 @@ function RootNavigator() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider>`n      <ThemeProvider>
+      <ToastProvider>
       <AuthProvider>
         <NavigationContainer theme={navTheme}>
           <StatusBar style="light" />
           <RootNavigator />
         </NavigationContainer>
       </AuthProvider>
+    </ToastProvider>`n      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
