@@ -14,3 +14,12 @@ npm-debug.log*
 .expo-shared/
 coverage/
 apps/api/.env
+
+apps/api/uploads/
+
+
+livekit.yaml
+
+docker-compose.yml
+
+.db-password

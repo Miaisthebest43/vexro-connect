@@ -6,7 +6,7 @@ import csrf from '@fastify/csrf-protection';
 
 export async function registerSecurity(app: FastifyInstance) {
   await app.register(cookie, {
-    secret: process.env.COOKIE_SECRET ?? 'dev-only-change-me-in-production',
+    secret: process.env.COOKIE_SECRET ?? 'dev-only-change-me',
     parseOptions: {},
   });
 
@@ -16,12 +16,14 @@ export async function registerSecurity(app: FastifyInstance) {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'blob:'],
-        connectSrc: ["'self'"],
+        // Allow images from anywhere (our server, local, data URIs)
+        imgSrc: ["'self'", 'data:', 'blob:', '*'],
+        connectSrc: ["'self'", '*'],
         frameAncestors: ["'none'"],
         objectSrc: ["'none'"],
       },
     },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
     crossOriginEmbedderPolicy: false,
   });
 

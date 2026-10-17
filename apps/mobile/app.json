@@ -9,10 +9,18 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.vexro.connect"
+      "bundleIdentifier": "com.vexro.connect",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.vexro.connect"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2f56cad6-8452-4536-8016-e96cd4848757"
+      }
     }
   }
 }
