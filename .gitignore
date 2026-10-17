@@ -13,3 +13,4 @@ npm-debug.log*
 .expo/
 .expo-shared/
 coverage/
+apps/api/.env
