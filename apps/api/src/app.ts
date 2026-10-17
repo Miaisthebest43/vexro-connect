@@ -14,6 +14,9 @@ import { profileRoutes } from './routes/profile.js';
 import { uploadRoutes } from './routes/upload.js';
 import { pushRoutes } from './routes/push.js';
 import { friendRoutes } from './routes/friends.js';
+import { discoveryRoutes } from './routes/discovery.js';
+import { roleRoutes } from './routes/roles.js';
+import { searchRoutes } from './routes/search.js';
 import { voiceRoutes } from './routes/voice.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -32,6 +35,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(uploadRoutes);
   await app.register(pushRoutes);
   await app.register(friendRoutes);
+  await app.register(discoveryRoutes);
+  await app.register(roleRoutes);
+  await app.register(searchRoutes);
   await app.register(voiceRoutes);
 
   app.setNotFoundHandler((req, reply) => { reply.code(404).send({ error: 'Not Found' }); });

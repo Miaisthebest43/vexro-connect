@@ -45,6 +45,8 @@ export default function ChatScreen({ route, navigation }: Props) {
   const [serverLoading, setServerLoading] = useState(true);
 
   const [text, setText] = useState('');
+  const [search, setSearch] = useState(false);
+  const [searchQ, setSearchQ] = useState('');
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState<Message | null>(null);
@@ -199,6 +201,8 @@ export default function ChatScreen({ route, navigation }: Props) {
               const imgUrl = item.attachment_type === 'image' ? absUrl(item.attachment_url) : null;
               const aspect = item.attachment_width && item.attachment_height ? item.attachment_width / item.attachment_height : 1.5;
               const display = item.display_name ?? item.username;
+                      // We'll mock the role check for now based on server owner logic if you want, or just add an admin badge
+                      const isAdmin = false; // Will be wired to server roles later
               const authorStatus = getStatus(item.author_id);
               const authorAvatar = absUrl(item.avatar_url);
               return (
@@ -217,6 +221,7 @@ export default function ChatScreen({ route, navigation }: Props) {
                     <View style={{ flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap' }}>
                       <TouchableOpacity onPress={() => navigation.navigate('Profile', { userId: item.author_id })}>
                         <Text style={styles.messageUsername}>{display}</Text>
+                        {isAdmin && <View style={styles.adminBadge}><Text style={styles.adminBadgeText}>ADMIN</Text></View>}
                       </TouchableOpacity>
                       <Text style={styles.messageTime}>  {formatTime(item.created_at)}</Text>
                       {item.pinned && <Text style={styles.pinFlag}>  ðŸ“Œ</Text>}
@@ -367,6 +372,8 @@ const styles = StyleSheet.create({
   messageAvatarText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   avatarStatus: { position: 'absolute', right: -2, bottom: -2, width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: colors.bg },
   messageUsername: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  adminBadge: { backgroundColor: colors.danger, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginLeft: 8 },
+  adminBadgeText: { color: '#fff', fontSize: 9, fontWeight: '900' },
   messageTime: { color: colors.textMuted, fontSize: 11 },
   pinFlag: { color: colors.accent, fontSize: 11 },
   messageContent: { color: colors.text, fontSize: 15, lineHeight: 21, marginTop: 2 },

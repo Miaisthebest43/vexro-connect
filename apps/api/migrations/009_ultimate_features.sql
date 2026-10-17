@@ -1,0 +1,19 @@
+ALTER TABLE servers ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT false;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS custom_status TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS banner_color TEXT DEFAULT '#6366f1';
+
+CREATE TABLE IF NOT EXISTS roles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  server_id UUID NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  color TEXT NOT NULL DEFAULT '#ffffff',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS custom_emojis (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  server_id UUID NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  url TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);

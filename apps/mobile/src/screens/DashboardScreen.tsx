@@ -13,6 +13,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 export default function DashboardScreen({ navigation }: Props) {
   const { user, logout } = useAuth();
   const [servers, setServers] = useState<Server[]>([]);
+  const [discover, setDiscover] = useState<Server[]>([]);
+  const [tab, setTab] = useState<'mine' | 'discover'>('mine');
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [joining, setJoining] = useState(false);
@@ -20,6 +22,7 @@ export default function DashboardScreen({ navigation }: Props) {
   const [joinCode, setJoinCode] = useState('');
 
   const load = useCallback(async () => {
+    try { const { servers: d } = await api.discoverServers(); setDiscover(d); } catch {}
     try { const { servers } = await api.listServers(); setServers(servers); }
     catch (e: any) { Alert.alert('Failed to load', e.message); }
     finally { setLoading(false); }

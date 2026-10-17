@@ -111,6 +111,10 @@ export const api = {
   listDMs: () => request<{ dms: any[] }>('/dms', { auth: true }),
   openDM: (userId: string) => request<{ channel: any }>('/dms', { method: 'POST', body: { userId }, auth: true }),
 
+  discoverServers: () => request<{ servers: any[] }>('/discover', { auth: true }),
+  createRole: (serverId: string, name: string, color: string) => request<{ role: any }>(`/servers/${serverId}/roles`, { method: 'POST', body: { name, color }, auth: true }),
+  getRoles: (serverId: string) => request<{ roles: any[] }>(`/servers/${serverId}/roles`, { auth: true }),
+  searchMessages: (channelId: string, q: string) => request<{ messages: any[] }>(`/channels/${channelId}/search?q=${encodeURIComponent(q)}`, { auth: true }),
   getProfile: (userId: string) =>
     request<{ user: { id: string; username: string; bio: string | null; avatar_url: string | null; created_at: string; status: string; message_count: number; server_count: number } }>(`/users/${userId}`, { auth: true }),
 };
