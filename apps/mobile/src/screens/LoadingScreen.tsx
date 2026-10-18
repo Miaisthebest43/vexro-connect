@@ -8,17 +8,34 @@ export default function LoadingScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }).start();
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.05, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
       ])
     ).start();
   }, [pulseAnim, fadeAnim]);
 
+  const gradientColors = Array.isArray(colors.gradientAccent) ? colors.gradientAccent : ['#1a1a2e', '#09090b'];
+
   return (
-    <LinearGradient colors={colors.gradientAccent} style={styles.container}>
+    <LinearGradient colors={gradientColors as [string, string, ...string[]]} style={styles.container}>
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
         <Animated.Text style={[styles.logo, { transform: [{ scale: pulseAnim }] }]}>
           VEXRO

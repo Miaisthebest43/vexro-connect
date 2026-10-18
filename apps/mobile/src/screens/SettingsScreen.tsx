@@ -12,7 +12,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 const STATUSES: Array<{ key: 'online' | 'idle' | 'dnd' | 'offline'; label: string; color: string }> = [
   { key: 'online', label: 'Online', color: colors.success },
-  { key: 'idle', label: 'Idle', color: '#f5a623' },
+  { key: 'idle', label: 'Idle', color: colors.warning },
   { key: 'dnd', label: 'Do not disturb', color: colors.danger },
   { key: 'offline', label: 'Invisible', color: colors.textDim },
 ];
@@ -53,7 +53,7 @@ export default function SettingsScreen({ navigation }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>â€¹</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>‹</Text></TouchableOpacity>
         <Text style={styles.title}>Settings</Text>
         <View style={{ width: 30 }} />
       </View>
@@ -61,38 +61,43 @@ export default function SettingsScreen({ navigation }: Props) {
       <View style={styles.profileBlock}>
         <TouchableOpacity onPress={onPickAvatar} disabled={uploading}>
           {avatarUrl ? <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-            : <View style={[styles.avatar, styles.avatarFallback]}><Text style={styles.avatarText}>{user?.username[0].toUpperCase()}</Text></View>}
+            : <View style={[styles.avatar, styles.avatarFallback]}><Text style={styles.avatarText}>{user?.username?.[0]?.toUpperCase() ?? "?"}</Text></View>}
           {uploading && <View style={styles.avatarOverlay}><ActivityIndicator color="#fff" /></View>}
         </TouchableOpacity>
         <Text style={styles.username}>@{user?.username}</Text>
         <Text style={styles.email}>{user?.email}</Text>
       </View>
 
-      <View style={styles.section}>
-        <TouchableOpacity onPress={toggleTheme} style={{ padding: 16, backgroundColor: colors.card, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: colors.border }}>
-          <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>🎨 Appearance</Text>
-          <Text style={{ color: colors.textDim, marginTop: 4, fontSize: 13 }}>Current: {theme === 'dark' ? 'Dark' : 'Light'} mode (Tap to toggle)</Text>
-        </TouchableOpacity>
+      <TouchableOpacity onPress={toggleTheme} style={styles.cardBtn}>
+        <Text style={styles.cardTitle}>🎨 Appearance</Text>
+        <Text style={styles.cardText}>Current: {theme === 'dark' ? 'Dark' : 'Light'} mode (Tap to toggle)</Text>
+      </TouchableOpacity>
 
-      <Text style={styles.sectionTitle}>Bio</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('Safety')} style={styles.cardBtn}>
+        <Text style={styles.cardTitle}>🛡️ Safety Center</Text>
+        <Text style={styles.cardText}>Manage privacy, blocked accounts, and reporting.</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('Sessions')} style={styles.cardBtn}>
+        <Text style={styles.cardTitle}>💻 Active Sessions</Text>
+        <Text style={styles.cardText}>Manage devices logged into your account.</Text>
+      </TouchableOpacity>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Bio</Text>
         <TextInput style={styles.input} value={bio} onChangeText={setBio} placeholder="Tell people about yourself" placeholderTextColor={colors.textDim} maxLength={200} multiline />
         <TouchableOpacity onPress={onSaveBio} disabled={saving} style={styles.saveBtn}>
-          <Text style={styles.saveText}>{saving ? 'Savingâ€¦' : 'Save bio'}</Text>
+          <Text style={styles.saveText}>{saving ? 'Saving…' : 'Save bio'}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
-        <TouchableOpacity onPress={() => navigation.navigate('Sessions')} style={{ padding: 16, backgroundColor: colors.card, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: colors.border }}>
-          <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>💻 Active Sessions</Text>
-          <Text style={{ color: colors.textDim, marginTop: 4, fontSize: 13 }}>Manage devices logged into your account.</Text>
-        </TouchableOpacity>
-
-      <Text style={styles.sectionTitle}>Status</Text>
+        <Text style={styles.sectionTitle}>Status</Text>
         {STATUSES.map((s) => (
           <TouchableOpacity key={s.key} style={styles.statusRow} onPress={() => onSetStatus(s.key)}>
             <View style={[styles.statusDot, { backgroundColor: s.color }]} />
             <Text style={styles.statusLabel}>{s.label}</Text>
-            {user?.status === s.key && <Text style={styles.check}>âœ“</Text>}
+            {user?.status === s.key && <Text style={styles.check}>✓</Text>}
           </TouchableOpacity>
         ))}
       </View>
@@ -112,6 +117,9 @@ const styles = StyleSheet.create({
   avatarOverlay: { ...StyleSheet.absoluteFillObject, borderRadius: 36, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   username: { color: colors.text, fontSize: 22, fontWeight: '700', marginTop: 16 },
   email: { color: colors.textDim, marginTop: 4 },
+  cardBtn: { marginTop: 16, marginHorizontal: 24, padding: 16, backgroundColor: colors.card, borderRadius: 12, borderWidth: 1, borderColor: colors.border },
+  cardTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  cardText: { color: colors.textDim, marginTop: 4, fontSize: 13 },
   section: { marginTop: 32, paddingHorizontal: 24 },
   sectionTitle: { color: colors.text, fontSize: 16, fontWeight: '700', marginBottom: 12 },
   input: { backgroundColor: colors.card, color: colors.text, padding: 14, borderRadius: 10, borderWidth: 1, borderColor: colors.border, minHeight: 80 },

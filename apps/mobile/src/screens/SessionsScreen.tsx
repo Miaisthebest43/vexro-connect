@@ -13,7 +13,7 @@ export default function SessionsScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    try { const r = await api.listSessions(); setSessions(r.sessions); }
+    try { const r = await api.listSessions(); setSessions(Array.isArray(r.sessions) ? r.sessions : []); }
     catch {}
     finally { setLoading(false); }
   }, []);

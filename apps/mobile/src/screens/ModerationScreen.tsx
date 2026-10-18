@@ -9,18 +9,15 @@ import { colors } from '../theme/colors';
 type Props = NativeStackScreenProps<RootStackParamList, 'Moderation'>;
 
 export default function ModerationScreen({ route, navigation }: Props) {
-  const { serverId, serverName } = route.params;
+  const { serverName } = route.params;
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    try {
-      // We'll mock this call if the API isn't ready, but let's assume it is
-      // const r = await api.getReports(serverId); setReports(r.reports);
-      setReports([]); // Placeholder until API is wired
-    } catch (e: any) { Alert.alert('Failed', e.message); }
+    try { setReports([]); }
+    catch (e: any) { Alert.alert('Failed', e.message); }
     finally { setLoading(false); }
-  }, [serverId]);
+  }, []);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
@@ -48,7 +45,6 @@ export default function ModerationScreen({ route, navigation }: Props) {
             <View style={styles.card}>
               <Text style={styles.reason}>{item.reason}</Text>
               <Text style={styles.details}>{item.details}</Text>
-              <Text style={styles.meta}>Reported @{item.target_name} • by @{item.reporter_name}</Text>
             </View>
           )}
         />
@@ -68,6 +64,5 @@ const styles = StyleSheet.create({
   emptyText: { color: colors.textDim, marginTop: 8, textAlign: 'center' },
   card: { backgroundColor: colors.card, padding: 16, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: colors.border },
   reason: { color: colors.danger, fontWeight: '700', fontSize: 16, marginBottom: 8 },
-  details: { color: colors.text, marginBottom: 8 },
-  meta: { color: colors.textDim, fontSize: 12 },
+  details: { color: colors.text },
 });

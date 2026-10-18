@@ -8,15 +8,6 @@ import { colors } from '../theme/colors';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Roles'>;
 
-const AVAILABLE_PERMS = [
-  { id: 'manage_channels', label: 'Manage Channels' },
-  { id: 'manage_roles', label: 'Manage Roles' },
-  { id: 'kick_members', label: 'Kick Members' },
-  { id: 'ban_members', label: 'Ban Members' },
-  { id: 'delete_messages', label: 'Delete Messages' },
-  { id: 'manage_reports', label: 'Review Reports' },
-];
-
 export default function RolesScreen({ route, navigation }: Props) {
   const { serverId } = route.params;
   const [roles, setRoles] = useState<any[]>([]);
@@ -24,10 +15,9 @@ export default function RolesScreen({ route, navigation }: Props) {
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
   const [color, setColor] = useState('#8285FF');
-  const [selectedPerms, setSelectedPerms] = useState<string[]>([]);
 
   const load = useCallback(async () => {
-    try { const r = await api.getRoles(serverId); setRoles(r.roles); }
+    try { const r = await api.getRoles(serverId); setRoles(Array.isArray(r.roles) ? r.roles : []); }
     catch (e: any) { Alert.alert('Failed', e.message); }
     finally { setLoading(false); }
   }, [serverId]);
@@ -55,12 +45,11 @@ export default function RolesScreen({ route, navigation }: Props) {
           data={roles}
           keyExtractor={r => r.id}
           contentContainerStyle={{ padding: 16 }}
-          ListEmptyComponent={<Text style={styles.empty}>No custom roles.</Text>}
+          ListEmptyComponent={<Text style={styles.empty}>No custom roles yet.</Text>}
           renderItem={({ item }) => (
             <View style={styles.row}>
-              <View style={[styles.colorDot, { backgroundColor: item.color }]} />
+              <View style={[styles.colorDot, { backgroundColor: item.color || '#8285FF' }]} />
               <Text style={styles.roleName}>{item.name}</Text>
-              <Text style={styles.rolePermsCount}>{item.permissions?.length || 0} perms</Text>
             </View>
           )}
         />
@@ -72,27 +61,9 @@ export default function RolesScreen({ route, navigation }: Props) {
             <Text style={styles.modalTitle}>Create Role</Text>
             <TextInput style={styles.input} placeholder="Role Name" placeholderTextColor={colors.textMuted} value={name} onChangeText={setName} />
             <TextInput style={styles.input} placeholder="Hex Color (e.g. #8285FF)" placeholderTextColor={colors.textMuted} value={color} onChangeText={setColor} />
-            
-            <Text style={styles.sectionLabel}>Permissions</Text>
-            {AVAILABLE_PERMS.map(p => (
-              <TouchableOpacity
-                key={p.id} style={styles.permRow}
-                onPress={() => setSelectedPerms(prev => prev.includes(p.id) ? prev.filter(x => x !== p.id) : [...prev, p.id])}
-              >
-                <View style={[styles.checkbox, selectedPerms.includes(p.id) && styles.checkboxOn]} />
-                <Text style={styles.permLabel}>{p.label}</Text>
-              </TouchableOpacity>
-            ))}
-
             <View style={styles.modalRow}>
               <TouchableOpacity onPress={() => setCreating(false)} style={styles.cancelBtn}><Text style={styles.cancelText}>Cancel</Text></TouchableOpacity>
-              <TouchableOpacity onPress={async () => {
-                if(!name.trim()) return;
-                try {
-                  await api.createRole(serverId, name.trim(), color);
-                  setCreating(false); setName(''); load();
-                } catch(e: any) { Alert.alert('Failed', e.message); }
-              }} style={styles.confirmBtn}><Text style={styles.confirmText}>Create</Text></TouchableOpacity>
+              <TouchableOpacity onPress={onCreate} style={styles.confirmBtn}><Text style={styles.confirmText}>Create</Text></TouchableOpacity>
             </View>
           </View>
         </View>
@@ -110,19 +81,14 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: colors.card, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
   colorDot: { width: 16, height: 16, borderRadius: 8, marginRight: 12 },
   roleName: { color: colors.text, fontSize: 16, fontWeight: '600', flex: 1 },
-  rolePermsCount: { color: colors.textDim, fontSize: 12 },
   empty: { color: colors.textDim, textAlign: 'center', marginTop: 40 },
   modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 24 },
-  modalCard: { backgroundColor: colors.bg2, borderRadius: 16, padding: 20 },
+  modalCard: { backgroundColor: colors.card, borderRadius: 16, padding: 20 },
   modalTitle: { color: colors.text, fontSize: 20, fontWeight: '700', marginBottom: 16 },
   input: { backgroundColor: colors.bg4, color: colors.text, padding: 14, borderRadius: 10, marginBottom: 12 },
-  sectionLabel: { color: colors.textDim, fontSize: 12, fontWeight: '700', marginTop: 8, marginBottom: 8 },
-  permRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
-  checkbox: { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: colors.border, marginRight: 12 },
-  checkboxOn: { backgroundColor: colors.accent, borderColor: colors.accent },
-  permLabel: { color: colors.text, fontSize: 14 },
-  modalRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 24 },
-  cancelBtn: { padding: 12 }, cancelText: { color: colors.textDim },
+  modalRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 12 },
+  cancelBtn: { padding: 12 },
+  cancelText: { color: colors.textDim },
   confirmBtn: { paddingHorizontal: 20, paddingVertical: 12, backgroundColor: colors.accent, borderRadius: 10 },
-  confirmText: { color: '#fff', fontWeight: '700' }
+  confirmText: { color: '#fff', fontWeight: '700' },
 });

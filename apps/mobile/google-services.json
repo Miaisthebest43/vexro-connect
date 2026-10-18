@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "722419468819",
+    "project_id": "vexro-connect-37746",
+    "storage_bucket": "vexro-connect-37746.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:722419468819:android:453d238846b99b8d4b8de6",
+        "android_client_info": {
+          "package_name": "com.vexro.connect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxtaNkp86m0bfMYUVNet6_4kZono3i29w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

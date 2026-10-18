@@ -3,14 +3,12 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Keyboard
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { api, type Message } from '../lib/api';
-import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Thread'>;
 
 export default function ThreadScreen({ route, navigation }: Props) {
   const { channelId, parentId, parentContent } = route.params;
-  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -20,7 +18,7 @@ export default function ThreadScreen({ route, navigation }: Props) {
     (async () => {
       try {
         const res = await api.getThread(channelId, parentId);
-        setMessages(res.messages);
+        setMessages(Array.isArray(res.messages) ? res.messages : []);
       } catch {}
       finally { setLoading(false); }
     })();
@@ -30,7 +28,7 @@ export default function ThreadScreen({ route, navigation }: Props) {
     if (!text.trim()) return;
     try {
       const res = await api.sendMessage(channelId, { content: text.trim(), parent_message_id: parentId });
-      setMessages(prev => [...prev, res.message]);
+      setMessages(prev => [...(Array.isArray(prev) ? prev : []), res.message]);
       setText('');
     } catch {}
   }

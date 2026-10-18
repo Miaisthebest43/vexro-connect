@@ -16,7 +16,7 @@ export function useChannel(channelId: string, selfId?: string) {
     let ws: WebSocket | null = null;
 
     (async () => {
-      try { const { messages } = await api.listMessages(channelId); if (!cancelled) setMessages(messages); }
+      try { const { messages } = await api.listMessages(channelId); if (!cancelled) setMessages(messages || []); }
       catch {}
       finally { if (!cancelled) setLoading(false); }
 
@@ -32,7 +32,7 @@ export function useChannel(channelId: string, selfId?: string) {
         try {
           const msg = JSON.parse(ev.data);
           if (msg.channelId && msg.channelId !== channelId) return;
-          if (msg.type === 'message') { setMessages((prev) => [...prev, msg.message]); api.markRead(channelId).catch(() => {}); }
+          if (msg.type === 'message') { setMessages((prev) => [...(prev || []), msg.message]); api.markRead(channelId).catch(() => {}); }
           if (msg.type === 'message_deleted') setMessages((prev) => prev.filter((m) => m.id !== msg.messageId));
           if (msg.type === 'message_edited') setMessages((prev) => prev.map((m) => m.id === msg.messageId ? { ...m, content: msg.content, edited_at: msg.edited_at } : m));
           if (msg.type === 'message_pinned') setMessages((prev) => prev.map((m) => m.id === msg.messageId ? { ...m, pinned: msg.pinned } : m));
