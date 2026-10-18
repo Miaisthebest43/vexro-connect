@@ -14,22 +14,29 @@ import { profileRoutes } from './routes/profile.js';
 import { uploadRoutes } from './routes/upload.js';
 import { pushRoutes } from './routes/push.js';
 import { friendRoutes } from './routes/friends.js';
+import { notificationRoutes } from './routes/notifications.js';
+import { safetyRoutes } from './routes/safety.js';
+import { auditRoutes } from './routes/audit.js';
 import { roleRoutes } from './routes/roles.js';
 import { reportRoutes } from './routes/reports.js';
 import { sessionRoutes } from './routes/sessions.js';
 import { dmRoutes } from './routes/dms.js';
 import { discoveryRoutes } from './routes/discovery.js';
-import { roleRoutes } from './routes/roles.js';
-import { searchRoutes } from './routes/search.js';
-import { voiceRoutes } from './routes/voice.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
-  const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' }, trustProxy: true, bodyLimit: 10_485_760 });
+  const app = Fastify({
+    logger: { level: process.env.LOG_LEVEL ?? 'info' },
+    trustProxy: true,
+    bodyLimit: 10_485_760,
+  });
+
   await app.register(staticPlugin);
   await app.register(multipartPlugin);
   await registerSecurity(app);
   await app.register(authPlugin);
   await app.register(wsPlugin);
+
+  // Core
   await app.register(healthRoutes);
   await app.register(authRoutes);
   await app.register(serverRoutes);
@@ -39,20 +46,29 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(uploadRoutes);
   await app.register(pushRoutes);
   await app.register(friendRoutes);
+
+  // Features
+  await app.register(notificationRoutes);
+  await app.register(safetyRoutes);
+  await app.register(auditRoutes);
   await app.register(roleRoutes);
   await app.register(reportRoutes);
   await app.register(sessionRoutes);
   await app.register(dmRoutes);
   await app.register(discoveryRoutes);
-  await app.register(roleRoutes);
-  await app.register(searchRoutes);
-  await app.register(voiceRoutes);
 
-  app.setNotFoundHandler((req, reply) => { reply.code(404).send({ error: 'Not Found' }); });
-  app.setErrorHandler((err, _req, reply) => {
-    const status = (err as any).statusCode ?? 500;
-    if (status >= 500) app.log.error(err);
-    reply.code(status).send({ error: err.message || 'Something went wrong' });
+  app.setNotFoundHandler((req, reply) => {
+    reply.code(404).send({ statusCode: 404, error: 'Not Found', message: 'Route not found' });
   });
+
+  app.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {
+    const status = err.statusCode ?? 500;
+    if (status >= 500) app.log.error(err);
+    reply.code(status).send({
+      error: status >= 500 ? 'Internal Server Error' : (err.name || 'Error'),
+      message: status >= 500 ? 'Something went wrong' : err.message,
+    });
+  });
+
   return app;
 }

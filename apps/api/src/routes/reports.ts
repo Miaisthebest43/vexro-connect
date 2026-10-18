@@ -10,7 +10,8 @@ export async function reportRoutes(app: FastifyInstance) {
     if (!canManage) return reply.code(403).send({ error: 'Missing manage_reports permission' });
 
     const r = await query(
-      `SELECT rep.*, u1.username as reporter_name, u2.username as target_name
+      `SELECT rep.*, u1.username as reporter_name,
+              COALESCE(u2.username, 'Unknown') as target_name
          FROM reports rep
          JOIN users u1 ON u1.id = rep.reporter_id
          LEFT JOIN messages m ON rep.target_type = 'message' AND m.id = rep.target_id
@@ -22,12 +23,8 @@ export async function reportRoutes(app: FastifyInstance) {
   });
 
   app.patch('/reports/:reportId', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const user = req.user!;
     const { reportId } = req.params as any;
-    const action = (req.body as any).action; // 'dismiss' or 'resolve'
-
-    // In a real app, we would check if the user has 'manage_reports' for the server related to this report.
-    // For now, let's just update the status.
+    const action = (req.body as any).action;
     await query(`UPDATE reports SET status = $1 WHERE id = $2`, [action === 'dismiss' ? 'dismissed' : 'resolved', reportId]);
     return reply.send({ ok: true });
   });

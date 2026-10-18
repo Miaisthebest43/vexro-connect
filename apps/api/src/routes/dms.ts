@@ -12,9 +12,7 @@ export async function dmRoutes(app: FastifyInstance) {
       `INSERT INTO channels (type, name) VALUES ('dm', $1) RETURNING id`, [parsed.data.name]);
     const channelId = ch.rows[0].id;
 
-    // Add self
     await query(`INSERT INTO dm_participants (channel_id, user_id) VALUES ($1, $2)`, [channelId, user.id]);
-    // Add others
     for (const uid of parsed.data.userIds) {
       await query(`INSERT INTO dm_participants (channel_id, user_id) VALUES ($1, $2)`, [channelId, uid]);
     }

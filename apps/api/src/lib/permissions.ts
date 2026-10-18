@@ -5,6 +5,17 @@ export type Permission =
   | 'manage_server' | 'manage_channels' | 'manage_roles' 
   | 'kick_members' | 'ban_members' | 'delete_messages' | 'manage_reports';
 
+// Old synchronous check (kept for backward compatibility with older routes)
+export function can(role: Role | null, action: 'manage_server' | 'manage_channels' | 'kick' | 'ban' | 'delete_any_message'): boolean {
+  if (!role) return false;
+  if (role === 'owner') return true;
+  if (role === 'admin') {
+    return action !== 'manage_server'; // admins can't delete/transfer server
+  }
+  return false;
+}
+
+// New async permission engine (for Roles)
 export async function getMemberRole(serverId: string, userId: string): Promise<Role | null> {
   const r = await query<{ role: string }>(
     `SELECT role FROM server_members WHERE server_id = $1 AND user_id = $2`,
@@ -26,13 +37,9 @@ export async function checkPermission(serverId: string, userId: string, permissi
   const member = r.rows[0];
   if (!member) return false;
 
-  // Owner can do everything
   if (member.role === 'owner') return true;
-
-  // If they have a custom role, check its permissions
   if (member.role_perms && member.role_perms.includes(permission)) return true;
 
-  // Default admin permissions (if no custom role assigned)
   if (member.role === 'admin') {
     return permission !== 'manage_server';
   }
