@@ -1,13 +1,18 @@
 const { getDefaultConfig } = require('expo/metro-config');
-const resolveFrom = require('resolve-from');
+const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (moduleName.startsWith('event-target-shim') && context.originModulePath.includes('react-native-webrtc')) {
-    const eventTargetShimPath = resolveFrom(context.originModulePath, 'event-target-shim');
-    return { filePath: eventTargetShimPath, type: 'sourceFile' };
+  // If we are on the web, mock out the native LiveKit packages
+  if (platform === 'web' && (moduleName === '@livekit/react-native' || moduleName === '@livekit/react-native-webrtc')) {
+    return {
+      filePath: path.resolve(__dirname, 'src/mocks/livekit-web.js'),
+      type: 'sourceFile',
+    };
   }
+  
+  // Fallback to default resolution
   return context.resolveRequest(context, moduleName, platform);
 };
 

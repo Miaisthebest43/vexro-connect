@@ -1,23 +1,20 @@
 {
-    "name": "vexro-connect",
-    "version": "0.1.0",
-    "private": true,
-    "description": "VEXRO Connect - Your people. Your space. Your rules.",
-    "workspaces": [
-        "apps/*",
-        "packages/*"
-    ],
-    "scripts": {
-        "dev:api": "npm run dev -w @vexro/api",
-        "build:api": "npm run build -w @vexro/api",
-        "test": "npm run test --workspaces --if-present",
-        "typecheck": "npm run typecheck --workspaces --if-present",
-        "postinstall": "patch-package"
-    },
-    "engines": {
-        "node": ">=20.0.0"
-    },
-    "devDependencies": {
-        "patch-package": "^8.0.1"
-    }
+  "name": "vexro-connect",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VEXRO Connect - Your people. Your space. Your rules.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w @vexro/api",
+    "build:api": "npm run build -w @vexro/api",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "migrate": "npm run migrate -w @vexro/api"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
 }

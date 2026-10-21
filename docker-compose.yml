@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vexro-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vexro
+      POSTGRES_PASSWORD: vexro_dev_password_change_me
+      POSTGRES_DB: vexro
+    ports:
+      - "5433:5432"
+    volumes:
+      - vexro_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vexro -d vexro"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: vexro-livekit
+    command: --dev --bind 0.0.0.0
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+
+volumes:
+  vexro_pg_data:

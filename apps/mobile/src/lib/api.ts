@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
@@ -11,15 +12,25 @@ export function absUrl(path: string | null | undefined): string | null {
   return `${API_URL}${path}`;
 }
 
-export async function getToken() { return SecureStore.getItemAsync(TOKEN_KEY); }
-export async function setToken(t: string) { await SecureStore.setItemAsync(TOKEN_KEY, t); }
-export async function clearToken() { await SecureStore.deleteItemAsync(TOKEN_KEY); }
+export async function getToken() {
+  if (Platform.OS === 'web') return localStorage.getItem(TOKEN_KEY);
+  return SecureStore.getItemAsync(TOKEN_KEY);
+}
+export async function setToken(t: string) {
+  if (Platform.OS === 'web') { localStorage.setItem(TOKEN_KEY, t); return; }
+  await SecureStore.setItemAsync(TOKEN_KEY, t);
+}
+export async function clearToken() {
+  if (Platform.OS === 'web') { localStorage.removeItem(TOKEN_KEY); return; }
+  await SecureStore.deleteItemAsync(TOKEN_KEY);
+}
 
 async function request<T>(path: string, options: { method?: string; body?: unknown; auth?: boolean } = {}): Promise<T> {
   const { method = 'GET', body, auth = false } = options;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (auth) { const t = await getToken(); if (t) headers.Authorization = `Bearer ${t}`; }
-  const res = await fetch(`${API_URL}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  const res = await fetch(`${API_URL}${path}`, {
+      credentials: 'include', method, headers, body: body ? JSON.stringify(body) : undefined });
   const text = await res.text();
   const data = text ? JSON.parse(text) : {};
   if (!res.ok) throw new Error((data as any).error || `Request failed (${res.status})`);
@@ -135,7 +146,8 @@ export async function uploadFile(endpoint: '/upload/avatar' | '/upload/attachmen
   const name = uri.split('/').pop() ?? 'upload.jpg';
   // @ts-ignore
   form.append('file', { uri, name, type: mimeType });
-  const res = await fetch(`${API_URL}${endpoint}`, { method: 'POST', headers: { Authorization: `Bearer ${token ?? ''}` }, body: form });
+  const res = await fetch(`${API_URL}${endpoint}`, {
+      credentials: 'include', method: 'POST', headers: { Authorization: `Bearer ${token ?? ''}` }, body: form });
   const text = await res.text();
   const data = text ? JSON.parse(text) : {};
   if (!res.ok) throw new Error(data.error || 'Upload failed');
