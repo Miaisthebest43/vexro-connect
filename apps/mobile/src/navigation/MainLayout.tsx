@@ -1,52 +1,66 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, useWindowDimensions, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Menu } from 'lucide-react-native';
-import ServerRail from '../components/ServerRail';
-import ChannelSidebar from '../components/ChannelSidebar';
-import ChatScreen from '../screens/ChatScreen';
+import VexroSidebar from '../components/VexroSidebar';
+import MessageList from '../components/MessageList';
+import VexroChatScreen from '../screens/VexroChatScreen';
+import SafetyScreen from '../screens/SafetyScreen';
+import HomeScreen from '../screens/HomeScreen';
+import CommunitiesScreen from '../screens/CommunitiesScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import DiscoverScreen from '../screens/DiscoverScreen';
+import PrivacyScreen from '../screens/PrivacyScreen';
+import BlockListScreen from '../screens/BlockListScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import CreateCommunityScreen from '../screens/CreateCommunityScreen';
 import { colors } from '../theme/colors';
 
 export default function MainLayout() {
-  const { width } = useWindowDimensions();
-  const isMobile = width < 768;
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [activeChannel, setActiveChannel] = useState('general');
+  const [activeView, setActiveView] = useState('home');
+
+  if (activeView === 'settings') {
+    return <SafeAreaView style={styles.safe}><SettingsScreen onClose={() => setActiveView('home')} /></SafeAreaView>;
+  }
+
+  if (activeView === 'create-community') {
+    return <SafeAreaView style={styles.safe}><CreateCommunityScreen onClose={() => setActiveView('home')} /></SafeAreaView>;
+  }
+
+  if (activeView === 'profile') {
+    return <SafeAreaView style={styles.safe}><ProfileScreen onBack={() => setActiveView('home')} /></SafeAreaView>;
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
       <View style={styles.container}>
-        {(!isMobile || showSidebar) && (
-          <View style={[styles.sidebarWrapper, isMobile && styles.mobileSidebar]}>
-            <ServerRail />
-            <ChannelSidebar 
-              activeChannel={activeChannel}
-              onSelectChannel={(ch) => {
-                if (isMobile) setShowSidebar(false);
-                setActiveChannel(ch);
-              }} 
-            />
+        <VexroSidebar activeView={activeView} onNavigate={setActiveView} />
+        
+        {activeView === 'messages' ? (
+          <>
+            <MessageList />
+            <View style={styles.mainContent}>
+              <VexroChatScreen />
+            </View>
+          </>
+        ) : (
+          <View style={styles.mainContent}>
+            {activeView === 'home' && <HomeScreen onNavigate={setActiveView} />}
+            {activeView === 'safety' && <SafetyScreen />}
+            {activeView === 'communities' && <CommunitiesScreen />}
+            {activeView === 'notifications' && <NotificationsScreen />}
+            {activeView === 'discover' && <DiscoverScreen />}
+            {activeView === 'privacy' && <PrivacyScreen />}
+            {activeView === 'blocklist' && <BlockListScreen />}
           </View>
         )}
-
-        <View style={styles.mainContent}>
-          {isMobile && (
-            <TouchableOpacity style={styles.menuBtn} onPress={() => setShowSidebar(true)}>
-              <Menu size={24} color={colors.text} />
-            </TouchableOpacity>
-          )}
-          <ChatScreen channelName={activeChannel} />
-        </View>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#080A0F' },
+  safe: { flex: 1, backgroundColor: colors.bg },
   container: { flex: 1, flexDirection: 'row' },
-  sidebarWrapper: { flexDirection: 'row' },
-  mobileSidebar: { position: 'absolute', zIndex: 100, height: '100%', shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 10 },
   mainContent: { flex: 1 },
-  menuBtn: { position: 'absolute', top: 16, left: 16, zIndex: 10, padding: 8, backgroundColor: colors.bg2, borderRadius: 8 },
 });

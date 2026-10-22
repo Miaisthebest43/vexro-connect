@@ -1,49 +1,50 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Image, ScrollView } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../App';
-import { api, absUrl } from '../lib/api';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { ArrowLeft, MoreHorizontal, MessageSquare } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
-
-const statusColors: Record<string, string> = { online: colors.success, idle: colors.warning, dnd: colors.danger, offline: colors.textDim };
-
-export default function ProfileScreen({ route }: Props) {
-  const { userId } = route.params;
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => { try { const { user } = await api.getProfile(userId); setProfile(user); } catch {} finally { setLoading(false); } })();
-  }, [userId]);
-
-  if (loading) return <ActivityIndicator color={colors.accent} style={{ flex: 1, backgroundColor: colors.bg }} />;
-  if (!profile) return <Text style={{ color: colors.textDim, padding: 24 }}>Not found</Text>;
-
-  const joined = new Date(profile.created_at).toLocaleDateString();
-  const avatarUrl = absUrl(profile.avatar_url);
-
+export default function ProfileScreen({ onBack }: { onBack: () => void }) {
   return (
     <ScrollView style={styles.container}>
-      <View style={[styles.banner, { backgroundColor: profile.banner_color || colors.accent }]} />
-      <View style={styles.profileContent}>
+      <View style={styles.banner}>
+        <TouchableOpacity style={styles.backBtn} onPress={onBack}>
+          <ArrowLeft size={20} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.moreBtn}>
+          <MoreHorizontal size={20} color="#fff" />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.profileHeader}>
         <View style={styles.avatarWrap}>
-          {avatarUrl ? <Image source={{ uri: avatarUrl }} style={styles.avatarImg} /> : <View style={styles.avatarFallback}><Text style={styles.avatarText}>{profile.username[0].toUpperCase()}</Text></View>}
-          <View style={[styles.statusDot, { backgroundColor: statusColors[profile.status] ?? colors.textDim }]} />
+          <View style={styles.avatar}><Text style={styles.avatarText}>F</Text></View>
+          <View style={styles.statusDot} />
         </View>
-        <Text style={styles.username}>@{profile.username}</Text>
-        {profile.custom_status && <Text style={styles.customStatus}>{profile.custom_status}</Text>}
-        <Text style={styles.joined}>Joined {joined}</Text>
-        
-        <View style={styles.bioBox}>
-          <Text style={styles.bioTitle}>ABOUT ME</Text>
-          <Text style={styles.bio}>{profile.bio || 'No bio yet.'}</Text>
+        <View style={styles.nameRow}>
+          <View>
+            <Text style={styles.displayName}>FairyTales</Text>
+            <Text style={styles.username}>@ifwyobody</Text>
+          </View>
+          <TouchableOpacity style={styles.msgBtn}>
+            <MessageSquare size={18} color="#fff" />
+            <Text style={styles.msgBtnText}>Message</Text>
+          </TouchableOpacity>
         </View>
+      </View>
 
-        <View style={styles.stats}>
-          <View style={styles.stat}><Text style={styles.statNum}>{profile.message_count}</Text><Text style={styles.statLabel}>Messages</Text></View>
-          <View style={styles.stat}><Text style={styles.statNum}>{profile.server_count}</Text><Text style={styles.statLabel}>Servers</Text></View>
+      <View style={styles.content}>
+        <Text style={styles.sectionTitle}>About Me</Text>
+        <Text style={styles.bio}>Just a dev building cool things. Love gaming and UI design.</Text>
+        
+        <Text style={styles.sectionTitle}>Member Since</Text>
+        <Text style={styles.bio}>August 18, 2025</Text>
+
+        <Text style={styles.sectionTitle}>Mutual Friends</Text>
+        <View style={styles.mutualRow}>
+          <View style={[styles.smallAvatar, { backgroundColor: colors.accent }]}><Text style={styles.smallAvatarText}>A</Text></View>
+          <View style={[styles.smallAvatar, { backgroundColor: colors.success, marginLeft: -8 }]}><Text style={styles.smallAvatarText}>B</Text></View>
+          <View style={[styles.smallAvatar, { backgroundColor: colors.warning, marginLeft: -8 }]}><Text style={styles.smallAvatarText}>C</Text></View>
+          <Text style={styles.mutualText}>3 mutual friends</Text>
         </View>
       </View>
     </ScrollView>
@@ -52,21 +53,24 @@ export default function ProfileScreen({ route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  banner: { height: 120, width: '100%' },
-  profileContent: { padding: 24, alignItems: 'center', marginTop: -50 },
-  avatarWrap: { position: 'relative', marginBottom: 16 },
-  avatarImg: { width: 100, height: 100, borderRadius: 50, borderWidth: 4, borderColor: colors.bg },
-  avatarFallback: { width: 100, height: 100, borderRadius: 50, backgroundColor: colors.accent, borderWidth: 4, borderColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: '#fff', fontSize: 44, fontWeight: '800' },
-  statusDot: { position: 'absolute', right: 4, bottom: 4, width: 20, height: 20, borderRadius: 10, borderWidth: 3, borderColor: colors.bg },
-  username: { color: colors.text, fontSize: 24, fontWeight: '700' },
-  customStatus: { color: colors.textDim, marginTop: 4, fontSize: 14 },
-  joined: { color: colors.textMuted, marginTop: 8, fontSize: 12 },
-  bioBox: { width: '100%', backgroundColor: colors.bg2, padding: 16, borderRadius: 12, marginTop: 24, borderWidth: 1, borderColor: colors.border },
-  bioTitle: { color: colors.textDim, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 },
-  bio: { color: colors.text, lineHeight: 20 },
-  stats: { flexDirection: 'row', marginTop: 32, gap: 40 },
-  stat: { alignItems: 'center' },
-  statNum: { color: colors.text, fontSize: 24, fontWeight: '800' },
-  statLabel: { color: colors.textDim, marginTop: 4, fontSize: 12 },
+  banner: { height: 200, backgroundColor: '#1E1F22', justifyContent: 'space-between', flexDirection: 'row', padding: 24 },
+  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
+  moreBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
+  profileHeader: { paddingHorizontal: 32, marginTop: -50 },
+  avatarWrap: { position: 'relative', width: 100, height: 100 },
+  avatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', borderWidth: 6, borderColor: colors.bg },
+  avatarText: { color: '#fff', fontSize: 40, fontWeight: '700' },
+  statusDot: { position: 'absolute', bottom: 6, right: 6, width: 20, height: 20, borderRadius: 10, backgroundColor: colors.success, borderWidth: 4, borderColor: colors.bg },
+  nameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 },
+  displayName: { color: colors.text, fontSize: 24, fontWeight: '800' },
+  username: { color: colors.textDim, fontSize: 14, marginTop: 4 },
+  msgBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.accent, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, gap: 8 },
+  msgBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  content: { padding: 32, maxWidth: 800 },
+  sectionTitle: { color: colors.text, fontSize: 14, fontWeight: '700', marginBottom: 8, marginTop: 24 },
+  bio: { color: colors.textDim, fontSize: 14, lineHeight: 20 },
+  mutualRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
+  smallAvatar: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.bg },
+  smallAvatarText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  mutualText: { color: colors.textDim, fontSize: 13, marginLeft: 12 },
 });

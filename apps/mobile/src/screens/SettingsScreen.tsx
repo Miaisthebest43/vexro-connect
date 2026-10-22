@@ -1,132 +1,145 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Alert, ScrollView, TextInput } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../App';
-import { useAuth } from '../context/AuthContext';
-import { uploadFile, absUrl, api } from '../lib/api';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { X, User, Search, Shield, Bell, CreditCard, Gift, MonitorSmartphone, ChevronRight, Smartphone, Mail, Phone } from 'lucide-react-native';
 import { colors } from '../theme/colors';
-import { useTheme } from '../theme/ThemeContext';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
-
-const STATUSES: Array<{ key: 'online' | 'idle' | 'dnd' | 'offline'; label: string; color: string }> = [
-  { key: 'online', label: 'Online', color: colors.success },
-  { key: 'idle', label: 'Idle', color: colors.warning },
-  { key: 'dnd', label: 'Do not disturb', color: colors.danger },
-  { key: 'offline', label: 'Invisible', color: colors.textDim },
-];
-
-export default function SettingsScreen({ navigation }: Props) {
-  const { user, refreshUser } = useAuth();
-  const { theme, toggle: toggleTheme } = useTheme();
-  const [uploading, setUploading] = useState(false);
-  const [bio, setBio] = useState(user?.bio ?? '');
-  const [saving, setSaving] = useState(false);
-
-  async function onPickAvatar() {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) { Alert.alert('Permission needed'); return; }
-    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.8 });
-    if (r.canceled) return;
-    const asset = r.assets[0]!;
-    setUploading(true);
-    try { await uploadFile('/upload/avatar', asset.uri, asset.mimeType ?? 'image/jpeg'); await refreshUser(); }
-    catch (e: any) { Alert.alert('Failed', e.message); }
-    finally { setUploading(false); }
-  }
-
-  async function onSaveBio() {
-    setSaving(true);
-    try { await api.updateMe({ bio }); await refreshUser(); Alert.alert('Saved'); }
-    catch (e: any) { Alert.alert('Failed', e.message); }
-    finally { setSaving(false); }
-  }
-
-  async function onSetStatus(status: 'online' | 'idle' | 'dnd' | 'offline') {
-    try { await api.updateMe({ status }); await refreshUser(); }
-    catch (e: any) { Alert.alert('Failed', e.message); }
-  }
-
-  const avatarUrl = absUrl(user?.avatar_url);
-
+export default function SettingsScreen({ onClose }: { onClose: () => void }) {
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>‹</Text></TouchableOpacity>
-        <Text style={styles.title}>Settings</Text>
-        <View style={{ width: 30 }} />
-      </View>
+    <View style={styles.container}>
+      {/* Left Sidebar */}
+      <View style={styles.sidebar}>
+        <View style={styles.profileHeader}>
+          <View style={styles.avatar}><Text style={styles.avatarText}>F</Text></View>
+          <View>
+            <Text style={styles.profileName}>FairyTales</Text>
+            <Text style={styles.editProfile}>Edit Profile ✎</Text>
+          </View>
+        </View>
 
-      <View style={styles.profileBlock}>
-        <TouchableOpacity onPress={onPickAvatar} disabled={uploading}>
-          {avatarUrl ? <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-            : <View style={[styles.avatar, styles.avatarFallback]}><Text style={styles.avatarText}>{user?.username?.[0]?.toUpperCase() ?? "?"}</Text></View>}
-          {uploading && <View style={styles.avatarOverlay}><ActivityIndicator color="#fff" /></View>}
-        </TouchableOpacity>
-        <Text style={styles.username}>@{user?.username}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
-      </View>
+        <View style={styles.searchWrap}>
+          <Search size={16} color={colors.textMuted} />
+          <TextInput style={styles.searchInput} placeholder="Search" placeholderTextColor={colors.textMuted} />
+        </View>
 
-      <TouchableOpacity onPress={toggleTheme} style={styles.cardBtn}>
-        <Text style={styles.cardTitle}>🎨 Appearance</Text>
-        <Text style={styles.cardText}>Current: {theme === 'dark' ? 'Dark' : 'Light'} mode (Tap to toggle)</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => navigation.navigate('Safety')} style={styles.cardBtn}>
-        <Text style={styles.cardTitle}>🛡️ Safety Center</Text>
-        <Text style={styles.cardText}>Manage privacy, blocked accounts, and reporting.</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => navigation.navigate('Sessions')} style={styles.cardBtn}>
-        <Text style={styles.cardTitle}>💻 Active Sessions</Text>
-        <Text style={styles.cardText}>Manage devices logged into your account.</Text>
-      </TouchableOpacity>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Bio</Text>
-        <TextInput style={styles.input} value={bio} onChangeText={setBio} placeholder="Tell people about yourself" placeholderTextColor={colors.textDim} maxLength={200} multiline />
-        <TouchableOpacity onPress={onSaveBio} disabled={saving} style={styles.saveBtn}>
-          <Text style={styles.saveText}>{saving ? 'Saving…' : 'Save bio'}</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Status</Text>
-        {STATUSES.map((s) => (
-          <TouchableOpacity key={s.key} style={styles.statusRow} onPress={() => onSetStatus(s.key)}>
-            <View style={[styles.statusDot, { backgroundColor: s.color }]} />
-            <Text style={styles.statusLabel}>{s.label}</Text>
-            {user?.status === s.key && <Text style={styles.check}>✓</Text>}
+        <ScrollView>
+          <Text style={styles.category}>Account</Text>
+          <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
+            <User size={18} color={colors.text} /><Text style={styles.navTextActive}>Account Info</Text>
           </TouchableOpacity>
-        ))}
+          <TouchableOpacity style={styles.navItem}>
+            <Shield size={18} color={colors.textDim} /><Text style={styles.navText}>Password & Security</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem}>
+            <Smartphone size={18} color={colors.textDim} /><Text style={styles.navText}>Account Status</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem}>
+            <MonitorSmartphone size={18} color={colors.textDim} /><Text style={styles.navText}>Family Center</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.category}>Billing</Text>
+          <TouchableOpacity style={styles.navItem}>
+            <CreditCard size={18} color={colors.textDim} /><Text style={styles.navText}>Subscriptions</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem}>
+            <Gift size={18} color={colors.textDim} /><Text style={styles.navText}>Gift Inventory</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
-    </ScrollView>
+
+      {/* Right Content Area */}
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Account</Text>
+          <TouchableOpacity onPress={onClose}><X size={24} color={colors.textDim} /></TouchableOpacity>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.sectionTitle}>Account Info</Text>
+          
+          <View style={styles.infoRow}>
+            <View>
+              <Text style={styles.label}>Username</Text>
+              <Text style={styles.value}>ifwyobody</Text>
+            </View>
+            <TouchableOpacity style={styles.editBtn}><Text style={styles.editBtnText}>Edit</Text></TouchableOpacity>
+          </View>
+
+          <View style={styles.infoRow}>
+            <View>
+              <Text style={styles.label}>Email</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.value}>************@gmail.com</Text>
+                <TouchableOpacity><Text style={styles.revealText}>Reveal</Text></TouchableOpacity>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.editBtn}><Text style={styles.editBtnText}>Edit</Text></TouchableOpacity>
+          </View>
+
+          <View style={styles.infoRow}>
+            <View>
+              <Text style={styles.label}>Phone Number</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.value}>********9709</Text>
+                <TouchableOpacity><Text style={styles.revealText}>Reveal</Text></TouchableOpacity>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.editBtn}><Text style={styles.editBtnText}>Edit</Text></TouchableOpacity>
+          </View>
+
+          <View style={styles.divider} />
+
+          <Text style={styles.sectionTitle}>Password & Security</Text>
+          
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Password</Text>
+            <TouchableOpacity style={styles.editBtn}><Text style={styles.editBtnText}>Edit</Text></TouchableOpacity>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Multi-Factor Authentication</Text>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ color: colors.success, fontWeight: '600', marginRight: 8 }}>Enabled</Text>
+              <ChevronRight size={18} color={colors.textDim} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Logged-in Devices</Text>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ color: colors.textDim, marginRight: 8 }}>9 devices</Text>
+              <ChevronRight size={18} color={colors.textDim} />
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.border },
-  back: { color: colors.accent, fontSize: 24, width: 30 },
-  title: { color: colors.text, fontSize: 18, fontWeight: '700' },
-  profileBlock: { alignItems: 'center', marginTop: 32, paddingHorizontal: 24 },
-  avatar: { width: 120, height: 120, borderRadius: 36 },
-  avatarFallback: { backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: '#fff', fontSize: 52, fontWeight: '800' },
-  avatarOverlay: { ...StyleSheet.absoluteFillObject, borderRadius: 36, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
-  username: { color: colors.text, fontSize: 22, fontWeight: '700', marginTop: 16 },
-  email: { color: colors.textDim, marginTop: 4 },
-  cardBtn: { marginTop: 16, marginHorizontal: 24, padding: 16, backgroundColor: colors.card, borderRadius: 12, borderWidth: 1, borderColor: colors.border },
-  cardTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
-  cardText: { color: colors.textDim, marginTop: 4, fontSize: 13 },
-  section: { marginTop: 32, paddingHorizontal: 24 },
-  sectionTitle: { color: colors.text, fontSize: 16, fontWeight: '700', marginBottom: 12 },
-  input: { backgroundColor: colors.card, color: colors.text, padding: 14, borderRadius: 10, borderWidth: 1, borderColor: colors.border, minHeight: 80 },
-  saveBtn: { marginTop: 12, backgroundColor: colors.accent, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
-  saveText: { color: '#fff', fontWeight: '700' },
-  statusRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 12, borderRadius: 10, backgroundColor: colors.card, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
-  statusDot: { width: 14, height: 14, borderRadius: 7, marginRight: 12 },
-  statusLabel: { color: colors.text, fontSize: 15, flex: 1 },
-  check: { color: colors.accent, fontSize: 18, fontWeight: '800' },
+  container: { flex: 1, flexDirection: 'row', backgroundColor: colors.bg2 },
+  sidebar: { width: 260, backgroundColor: colors.bg3, padding: 16, borderRightWidth: 1, borderRightColor: colors.border },
+  profileHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, backgroundColor: colors.bg2, padding: 12, borderRadius: 8 },
+  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  avatarText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  profileName: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  editProfile: { color: colors.textDim, fontSize: 12, marginTop: 2 },
+  searchWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg, padding: 10, borderRadius: 8, marginBottom: 16 },
+  searchInput: { flex: 1, color: colors.text, marginLeft: 8, fontSize: 13 },
+  category: { color: colors.textMuted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginTop: 16, marginBottom: 8, marginLeft: 8 },
+  navItem: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 6, marginBottom: 2 },
+  navItemActive: { backgroundColor: colors.bg2 },
+  navText: { color: colors.textDim, fontSize: 14, fontWeight: '500', marginLeft: 10 },
+  navTextActive: { color: colors.text, fontSize: 14, fontWeight: '600', marginLeft: 10 },
+
+  content: { flex: 1, backgroundColor: colors.bg2 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, borderBottomWidth: 1, borderBottomColor: colors.border },
+  headerTitle: { color: colors.text, fontSize: 20, fontWeight: '700' },
+  scrollContent: { padding: 40, maxWidth: 800 },
+  sectionTitle: { color: colors.text, fontSize: 20, fontWeight: '700', marginBottom: 24 },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  label: { color: colors.textDim, fontSize: 14, fontWeight: '600', marginBottom: 4 },
+  value: { color: colors.text, fontSize: 15 },
+  revealText: { color: '#3b82f6', fontSize: 13, fontWeight: '600', marginLeft: 8 },
+  editBtn: { backgroundColor: colors.bg3, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
+  editBtnText: { color: colors.text, fontSize: 14, fontWeight: '600' },
+  divider: { height: 1, backgroundColor: colors.border, marginVertical: 32 },
 });

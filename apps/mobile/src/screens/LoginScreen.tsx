@@ -1,73 +1,104 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../App';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
+import { Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
-
-export default function LoginScreen({ navigation }: Props) {
+export default function LoginScreen({ navigation }: any) {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  async function onSubmit() {
-    if (!email || !password) return;
-    setBusy(true);
-    try { await login(email.trim(), password); }
-    catch (e: any) { Alert.alert('Login failed', e.message); }
-    finally { setBusy(false); }
-  }
+  const handleLogin = async () => {
+    if (!email || !password) return setError('Please fill in all fields');
+    setLoading(true);
+    setError('');
+    try {
+      await login(email, password);
+    } catch (err: any) {
+      setError(err.message || 'Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <LinearGradient colors={colors.gradientAccent} style={styles.container}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.inner}>
-        <Text style={styles.logo}>VEXRO</Text>
-        <Text style={styles.tagline}>Your people. Your space. Your rules.</Text>
+    <ImageBackground 
+      source={{ uri: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop' }} 
+      style={styles.background}
+    >
+      <View style={styles.overlay}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.center}>
+          
+          <View style={styles.card}>
+            <View style={styles.logoWrap}>
+              <ShieldCheck size={48} color={colors.accent} />
+              <Text style={styles.logo}>VEXRO</Text>
+              <Text style={styles.subtitle}>Your people. Your space. Your rules.</Text>
+            </View>
 
-        <View style={styles.card}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={colors.textDim}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={colors.textDim}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TouchableOpacity style={[styles.button, busy && styles.buttonDisabled]} onPress={onSubmit} disabled={busy}>
-            {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign in</Text>}
-          </TouchableOpacity>
-        </View>
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.link}>No account? Create one</Text>
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
-    </LinearGradient>
+            <View style={styles.inputGroup}>
+              <Mail size={20} color={colors.textDim} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Email Address"
+                placeholderTextColor={colors.textMuted}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Lock size={20} color={colors.textDim} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor={colors.textMuted}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+            </View>
+
+            <TouchableOpacity style={styles.loginBtn} onPress={handleLogin} disabled={loading}>
+              <Text style={styles.loginBtnText}>{loading ? 'Authenticating...' : 'Secure Login'}</Text>
+              {!loading && <ArrowRight size={18} color="#fff" />}
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.registerLink}>
+              <Text style={styles.registerText}>New to VEXRO? <Text style={{ color: colors.accent, fontWeight: '700' }}>Create an account</Text></Text>
+            </TouchableOpacity>
+          </View>
+
+        </KeyboardAvoidingView>
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  inner: { flex: 1, padding: 24, justifyContent: 'center' },
-  logo: { fontSize: 48, fontWeight: '900', color: '#fff', letterSpacing: 4, textAlign: 'center' },
-  tagline: { color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginTop: 8, marginBottom: 40 },
-  card: { backgroundColor: 'rgba(255,255,255,0.05)', padding: 24, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  input: { backgroundColor: 'rgba(0,0,0,0.2)', color: '#fff', padding: 16, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  button: { backgroundColor: colors.accent, padding: 16, borderRadius: 12, alignItems: 'center' },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  link: { color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginTop: 24, fontSize: 14 },
+  background: { flex: 1, width: '100%', height: '100%' },
+  overlay: { flex: 1, backgroundColor: 'rgba(10, 11, 16, 0.85)', justifyContent: 'center', alignItems: 'center' },
+  center: { width: '100%', maxWidth: 440, padding: 20 },
+  card: { backgroundColor: 'rgba(18, 20, 29, 0.95)', padding: 40, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(106, 92, 255, 0.3)', shadowColor: colors.accent, shadowOpacity: 0.2, shadowRadius: 20 },
+  logoWrap: { alignItems: 'center', marginBottom: 32 },
+  logo: { color: '#fff', fontSize: 28, fontWeight: '900', letterSpacing: 2, marginTop: 12 },
+  subtitle: { color: colors.textDim, fontSize: 13, marginTop: 8 },
+  errorText: { color: colors.danger, fontSize: 13, textAlign: 'center', marginBottom: 16, fontWeight: '600' },
+  
+  inputGroup: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg, borderRadius: 12, marginBottom: 16, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: colors.border },
+  inputIcon: { marginRight: 12 },
+  input: { flex: 1, color: '#fff', fontSize: 15 },
+  
+  loginBtn: { flexDirection: 'row', backgroundColor: colors.accent, height: 52, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginTop: 8, gap: 8 },
+  loginBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  
+  registerLink: { marginTop: 24, alignItems: 'center' },
+  registerText: { color: colors.textDim, fontSize: 14 },
 });

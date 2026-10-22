@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local
+*.log
+.vscode/
+.idea/
+.DS_Store
+.expo/
+.expo-shared/
+android/
+ios/
+coverage/

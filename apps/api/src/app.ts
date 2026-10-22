@@ -4,6 +4,7 @@ import websocket from '@fastify/websocket';
 import { registerSecurity } from './plugins/security.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
+import { verifyRoutes } from './routes/verify.js';
 import { chatRoutes } from './routes/chat.js';
 import { voiceRoutes } from './routes/voice.js';
 import dbPlugin from './plugins/db.js';
@@ -18,6 +19,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(healthRoutes);
   await app.register(authRoutes);
+  await app.register(verifyRoutes);
   await app.register(chatRoutes);
   await app.register(voiceRoutes);
 
