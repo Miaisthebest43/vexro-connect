@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 
 import { X, User, Search, Shield, Bell, CreditCard, Gift, MonitorSmartphone, ChevronRight, Smartphone, Mail, Phone } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 
-export default function SettingsScreen({ onClose }: { onClose: () => void }) {
+export default function SettingsScreen({ onClose, onOpenSessions, onOpenEditProfile }: { onClose: () => void, onOpenSessions: () => void, onOpenEditProfile: () => void }) {
   return (
     <View style={styles.container}>
       {/* Left Sidebar */}
@@ -96,17 +96,7 @@ export default function SettingsScreen({ onClose }: { onClose: () => void }) {
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Multi-Factor Authentication</Text>
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={{ color: colors.success, fontWeight: '600', marginRight: 8 }}>Enabled</Text>
-              <ChevronRight size={18} color={colors.textDim} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Logged-in Devices</Text>
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={{ color: colors.textDim, marginRight: 8 }}>9 devices</Text>
-              <ChevronRight size={18} color={colors.textDim} />
-            </TouchableOpacity>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={onOpenSessions}><Text style={{ color: colors.textDim, marginRight: 8 }}>Manage Sessions</Text><ChevronRight size={18} color={colors.textDim} /></TouchableOpacity>
           </View>
         </ScrollView>
       </View>

@@ -1,58 +1,76 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, StyleSheet, useWindowDimensions, ActivityIndicator, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import VexroSidebar from '../components/VexroSidebar';
-import MessageList from '../components/MessageList';
+
+import ServerRail from '../components/ServerRail';
+import DMSidebar from '../components/DMSidebar';
+import ProfileSidebar from '../components/ProfileSidebar';
 import VexroChatScreen from '../screens/VexroChatScreen';
-import SafetyScreen from '../screens/SafetyScreen';
 import HomeScreen from '../screens/HomeScreen';
-import CommunitiesScreen from '../screens/CommunitiesScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import NotificationsScreen from '../screens/NotificationsScreen';
-import DiscoverScreen from '../screens/DiscoverScreen';
-import PrivacyScreen from '../screens/PrivacyScreen';
-import BlockListScreen from '../screens/BlockListScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import VoiceCallScreen from '../screens/VoiceCallScreen';
+import CommunitiesScreen from '../screens/CommunitiesScreen';
+import SafetyScreen from '../screens/SafetyScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import SessionsScreen from '../screens/SessionsScreen';
 import CreateCommunityScreen from '../screens/CreateCommunityScreen';
+import FriendsScreen from '../screens/FriendsScreen';
+
+import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
 
 export default function MainLayout() {
-  const [activeView, setActiveView] = useState('home');
+  const { width } = useWindowDimensions();
+  const { user, loading } = useAuth();
+  const isMobile = width < 768;
+  
+  const [activeView, setActiveView] = useState('home'); 
 
-  if (activeView === 'settings') {
-    return <SafeAreaView style={styles.safe}><SettingsScreen onClose={() => setActiveView('home')} /></SafeAreaView>;
-  }
+  const handleNavigate = useCallback((view: string) => {
+    setActiveView(view);
+  }, []);
 
-  if (activeView === 'create-community') {
-    return <SafeAreaView style={styles.safe}><CreateCommunityScreen onClose={() => setActiveView('home')} /></SafeAreaView>;
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={colors.accent} />
+        <Text style={{ color: colors.textDim, marginTop: 16 }}>Connecting to VEXRO...</Text>
+      </View>
+    );
   }
+  if (!user) return null;
 
-  if (activeView === 'profile') {
-    return <SafeAreaView style={styles.safe}><ProfileScreen onBack={() => setActiveView('home')} /></SafeAreaView>;
-  }
+  if (activeView === 'settings') return <SafeAreaView style={styles.safe}><SettingsScreen onClose={() => handleNavigate('home')} onOpenSessions={() => handleNavigate('sessions')} onOpenEditProfile={() => handleNavigate('edit-profile')} /></SafeAreaView>;
+  if (activeView === 'edit-profile') return <SafeAreaView style={styles.safe}><EditProfileScreen onClose={() => handleNavigate('home')} /></SafeAreaView>;
+  if (activeView === 'sessions') return <SafeAreaView style={styles.safe}><SessionsScreen onBack={() => handleNavigate('settings')} /></SafeAreaView>;
+  if (activeView === 'create-community') return <SafeAreaView style={styles.safe}><CreateCommunityScreen onClose={() => handleNavigate('home')} /></SafeAreaView>;
+  if (activeView === 'voice-call') return <SafeAreaView style={styles.safe}><VoiceCallScreen channelName="Lounge" onLeave={() => handleNavigate('messages')} /></SafeAreaView>;
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <VexroSidebar activeView={activeView} onNavigate={setActiveView} />
+        {!isMobile && <ServerRail />}
+        {!isMobile && <DMSidebar activeView={activeView} onNavigate={handleNavigate} />}
         
-        {activeView === 'messages' ? (
-          <>
-            <MessageList />
-            <View style={styles.mainContent}>
-              <VexroChatScreen />
-            </View>
-          </>
-        ) : (
-          <View style={styles.mainContent}>
-            {activeView === 'home' && <HomeScreen onNavigate={setActiveView} />}
-            {activeView === 'safety' && <SafetyScreen />}
-            {activeView === 'communities' && <CommunitiesScreen />}
-            {activeView === 'notifications' && <NotificationsScreen />}
-            {activeView === 'discover' && <DiscoverScreen />}
-            {activeView === 'privacy' && <PrivacyScreen />}
-            {activeView === 'blocklist' && <BlockListScreen />}
-          </View>
+        <View style={styles.mainContent}>
+          {activeView === 'messages' && <VexroChatScreen channelName="general" onStartCall={() => handleNavigate('voice-call')} />}
+          
+          {/* Dashboard is back on Home */}
+          {activeView === 'home' && <HomeScreen onNavigate={handleNavigate} />}
+          
+          {/* Profile is on its own tab */}
+          {activeView === 'profile' && <ProfileScreen />}
+          
+          {activeView === 'communities' && <CommunitiesScreen />}
+          {activeView === 'safety' && <SafetyScreen />}
+          {activeView === 'notifications' && <NotificationsScreen />}
+          {activeView === 'friends' && <FriendsScreen />}
+        </View>
+
+        {!isMobile && width > 1000 && activeView === 'messages' && (
+          <ProfileSidebar onNavigate={handleNavigate} />
         )}
       </View>
     </SafeAreaView>

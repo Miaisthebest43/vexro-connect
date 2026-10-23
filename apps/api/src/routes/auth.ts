@@ -8,7 +8,7 @@ const COOKIE_OPTS = {
   path: '/',
   httpOnly: true,
   sameSite: 'lax' as const,
-  secure: process.env.NODE_ENV === 'production',
+  secure: false,
   maxAge: 7 * 24 * 60 * 60,
 };
 
@@ -90,4 +90,42 @@ export async function authRoutes(app: FastifyInstance) {
   });
 
   app.get('/auth/me', { preHandler: requireAuth }, async (req) => ({ user: req.user }));
+
+  // --- SESSION MANAGEMENT ROUTES ---
+  app.get('/auth/sessions', { preHandler: requireAuth }, async (req) => {
+    const user = req.user!;
+    const { rows } = await app.pg.query(
+      `SELECT id, ip_hash, user_agent, created_at, expires_at 
+       FROM sessions 
+       WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > now()
+       ORDER BY created_at DESC`,
+      [user.id]
+    );
+    return { sessions: rows };
+  });
+
+  app.delete('/auth/sessions/:id', { preHandler: requireAuth }, async (req, reply) => {
+    const user = req.user!;
+    const { id } = req.params as { id: string };
+    
+    const { rowCount } = await app.pg.query(
+      `UPDATE sessions SET revoked_at = now() WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL`,
+      [id, user.id]
+    );
+
+    if (rowCount === 0) return reply.code(404).send({ error: 'Session not found or already revoked' });
+    return { success: true, message: 'Session revoked successfully' };
+  });
+
+  app.delete('/auth/sessions', { preHandler: requireAuth }, async (req) => {
+    const user = req.user!;
+    const currentSessionId = req.sessionId;
+    
+    await app.pg.query(
+      `UPDATE sessions SET revoked_at = now() WHERE user_id = $1 AND id != $2 AND revoked_at IS NULL`,
+      [user.id, currentSessionId]
+    );
+    
+    return { success: true, message: 'All other devices logged out.' };
+  });
 }

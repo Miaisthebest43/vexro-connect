@@ -4,24 +4,24 @@ import websocket from '@fastify/websocket';
 import { registerSecurity } from './plugins/security.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
-import { verifyRoutes } from './routes/verify.js';
 import { chatRoutes } from './routes/chat.js';
 import { voiceRoutes } from './routes/voice.js';
+import { dataRoutes } from './routes/data.js';
 import dbPlugin from './plugins/db.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' }, trustProxy: true, bodyLimit: 1_048_576 });
 
-  await app.register(cors, { origin: true, credentials: true });
+  await app.register(cors, { origin: true, credentials: true, exposedHeaders: ['set-cookie'] });
   await app.register(websocket);
   await registerSecurity(app);
   await app.register(dbPlugin);
 
   await app.register(healthRoutes);
   await app.register(authRoutes);
-  await app.register(verifyRoutes);
   await app.register(chatRoutes);
   await app.register(voiceRoutes);
+  await app.register(dataRoutes);
 
   app.setNotFoundHandler((req, reply) => {
     reply.code(404).send({ statusCode: 404, error: 'Not Found', message: 'Route not found' });
