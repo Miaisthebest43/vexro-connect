@@ -12,9 +12,12 @@ async function request<T>(path: string, options: { method?: string; body?: unkno
   const data = await res.json().catch(() => ({}));
   
   if (!res.ok) {
-    // If it's a 401 on the /auth/me check, don't throw a loud error, just return empty
-    if (res.status === 401 && path === '/auth/me') {
-      return { user: null } as unknown as T;
+    // If it's a 401 (Unauthorized), we gracefully return empty data instead of throwing a crashing error.
+    if (res.status === 401) {
+      console.warn(`[API] 401 Unauthorized on ${path}. Returning empty payload.`);
+      if (path === '/auth/me') return { user: null } as unknown as T;
+      if (path.includes('/messages/')) return { messages: [] } as unknown as T;
+      return {} as T;
     }
     throw new Error(data.error || 'Something went wrong');
   }

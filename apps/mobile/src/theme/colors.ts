@@ -1,18 +1,17 @@
 export const colors = {
-  bg: '#090B10',       // Deep space background
-  bg2: '#111420',      // Card background
-  bg3: '#1A1E2D',      // Lighter card / hover
-  bg4: '#23283B',
-  border: '#1F2437',
-  text: '#FFFFFF',
-  textDim: '#8E95A5',
-  textMuted: '#5C6273',
-  accent: '#6A5CFF',   // Neon Purple
-  accentDim: '#5247C9',
+  bg: '#1E1F22',       // Main chat background (Discord style)
+  bg2: '#2B2D31',      // Sidebars
+  bg3: '#313338',      // Cards / Inputs
+  bg4: '#383A40',      // Hover states
+  border: '#1F2023',
+  text: '#F2F3F5',
+  textDim: '#B5BAC1',
+  textMuted: '#949BA4',
+  accent: '#5865F2',   // Classic Blurple
+  accentDim: '#4752C4',
   success: '#23A559',
   danger: '#DA373C',
   warning: '#F0B232',
-  cyan: '#00E5FF',
 };
 export const darkColors = colors;
 export const lightColors = { ...colors };

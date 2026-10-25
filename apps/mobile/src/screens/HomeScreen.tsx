@@ -1,26 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, useWindowDimensions } from 'react-native';
-import { Search, Bell, HelpCircle, Users, MessageSquare, Shield, User, TrendingUp, Plus, Zap, Radio, Headphones, Gamepad2, Music, Play, Video } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, useWindowDimensions } from 'react-native';
+import { Search, Bell, Plus, Users, MessageSquare, Compass, ChevronRight, Activity, Sparkles, Hash } from 'lucide-react-native';
 import { colors } from '../theme/colors';
-
-const LIVE_NOW = [
-  { id: '1', name: 'NovaDreamer', title: 'Chill Roblox Stream', viewers: '1.2k', color: '#E91E63', icon: <Gamepad2 size={16} color="#fff" /> },
-  { id: '2', name: 'ZeroRush', title: 'Listening to Lofi', viewers: '840', color: '#23A559', icon: <Headphones size={16} color="#fff" /> },
-  { id: '3', name: 'LunaCode', title: 'Building a UI', viewers: '420', color: '#6A5CFF', icon: <Video size={16} color="#fff" /> },
-  { id: '4', name: 'Pixel', title: 'Gaming with Subs', viewers: '2.1k', color: '#F0B232', icon: <Gamepad2 size={16} color="#fff" /> },
-];
-
-const ACTIVITY = [
-  { id: '1', user: 'DØR †☆', action: 'started playing Roblox', time: '2m ago', color: '#E91E63', avatar: 'D' },
-  { id: '2', user: 'Nova', action: 'joined the VEXRO Beta community', time: '15m ago', color: '#6A5CFF', avatar: 'N' },
-  { id: '3', user: 'ZeroRush', action: 'shared a new track: Photograph', time: '1h ago', color: '#23A559', avatar: 'Z' },
-  { id: '4', user: 'LunaCode', action: 'reacted to your message in #general', time: '2h ago', color: '#F0B232', avatar: 'L' },
-];
-
-const TRENDING = [
-  { id: '1', name: 'Game Devs United', members: '8.2k', color: '#E91E63', cover: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?q=80&w=400&auto=format&fit=crop' },
-  { id: '2', name: 'Anime & Manga', members: '15.1k', color: '#F0B232', cover: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=400&auto=format&fit=crop' },
-];
 
 export default function HomeScreen({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { width } = useWindowDimensions();
@@ -28,130 +9,123 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (view: string) 
 
   return (
     <View style={styles.container}>
-      {/* Top Nav */}
+      {/* Top Navbar */}
       <View style={styles.topNav}>
         <View style={styles.searchBar}>
-          <Search size={16} color={colors.textMuted} />
+          <Search size={18} color={colors.textDim} />
           <TextInput style={styles.searchInput} placeholder="Search VEXRO..." placeholderTextColor={colors.textMuted} />
         </View>
         <View style={styles.topIcons}>
-          <Bell size={20} color={colors.textDim} style={{ marginRight: 16 }} />
-          <HelpCircle size={20} color={colors.textDim} style={{ marginRight: 16 }} />
-          <View style={styles.betaBadge}><Text style={styles.betaText}>BETA</Text></View>
+          <TouchableOpacity style={styles.iconBtn}><Bell size={20} color={colors.textDim} /></TouchableOpacity>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => onNavigate('communities')}><Plus size={20} color={colors.textDim} /></TouchableOpacity>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* Hero Banner */}
-        <View style={styles.heroBanner}>
-          <View style={styles.heroContent}>
-            <Text style={styles.greeting}>Welcome back, NovaDreamer 👋</Text>
-            <Text style={styles.subGreeting}>Here's what's happening in your world today.</Text>
-            <View style={styles.heroStats}>
-              <View style={styles.statPill}><Users size={14} color="#fff" /><Text style={styles.statPillText}>5 Communities</Text></View>
-              <View style={styles.statPill}><Zap size={14} color="#fff" /><Text style={styles.statPillText}>18 Friends</Text></View>
-            </View>
-          </View>
-          <View style={styles.heroGlow} />
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.greeting}>Good evening, FairyTales ✨</Text>
+          <Text style={styles.subGreeting}>Here's what's happening in your world today.</Text>
         </View>
 
-        {/* Live Now (Horizontal Scroll) */}
-        <View style={styles.sectionHeader}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Radio size={20} color={colors.danger} style={{ marginRight: 8 }} />
-            <Text style={styles.sectionTitle}>Live Now</Text>
+        {/* Bento Grid */}
+        <View style={[styles.bentoGrid, isMobile && { flexDirection: 'column' }]}>
+          
+          {/* Left Column (Large Card) */}
+          <View style={styles.bentoLeft}>
+            <View style={styles.largeCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardIconWrap}><Activity size={18} color={colors.accent} /></View>
+                <Text style={styles.cardTitle}>Recent Activity</Text>
+              </View>
+              
+              <View style={styles.timeline}>
+                {[
+                  { user: 'Nova', action: 'sent a message in #general', time: '2m ago', color: '#3498DB' },
+                  { user: 'ZeroRush', action: 'joined the Design Team server', time: '15m ago', color: '#E91E63' },
+                  { user: 'System', action: 'updated VEXRO to version 1.4', time: '1h ago', color: colors.accent },
+                ].map((item, i) => (
+                  <View key={i} style={styles.timelineItem}>
+                    <View style={[styles.timelineDot, { backgroundColor: item.color }]} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.timelineText}>
+                        <Text style={{ fontWeight: '700', color: colors.text }}>{item.user} </Text> 
+                        {item.action}
+                      </Text>
+                      <Text style={styles.timelineTime}>{item.time}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+              
+              <TouchableOpacity style={styles.viewAllBtn} onPress={() => onNavigate('messages')}>
+                <Text style={styles.viewAllText}>Open Messages</Text>
+                <ChevronRight size={16} color={colors.accent} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Right Column (Two Small Cards) */}
+          <View style={styles.bentoRight}>
+            <View style={styles.smallCard}>
+              <View style={styles.statIconWrap}><Users size={20} color={colors.success} /></View>
+              <Text style={styles.statValue}>18</Text>
+              <Text style={styles.statLabel}>Friends Online</Text>
+            </View>
+
+            <View style={styles.smallCard}>
+              <View style={[styles.statIconWrap, { backgroundColor: 'rgba(233, 30, 99, 0.1)' }]}><MessageSquare size={20} color="#E91E63" /></View>
+              <Text style={styles.statValue}>5</Text>
+              <Text style={styles.statLabel}>Unread Messages</Text>
+            </View>
           </View>
         </View>
+
+        {/* Jump Back In (Horizontal Scroll) */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Jump Back In</Text>
+        </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 32 }}>
-          <View style={{ flexDirection: 'row', gap: 16, paddingRight: 32 }}>
-            {LIVE_NOW.map((live) => (
-              <TouchableOpacity key={live.id} style={styles.liveCard}>
-                <View style={styles.liveCover}>
-                  <View style={[styles.liveAvatar, { backgroundColor: live.color }]}>
-                    <Text style={styles.liveAvatarText}>{live.name[0]}</Text>
-                  </View>
-                  <View style={styles.liveBadge}><Text style={styles.liveBadgeText}>LIVE</Text></View>
-                  <View style={styles.viewerBadge}>
-                    <Users size={12} color="#fff" />
-                    <Text style={styles.viewerText}>{live.viewers}</Text>
-                  </View>
-                </View>
-                <View style={styles.liveInfo}>
-                  <Text style={styles.liveName}>{live.name}</Text>
-                  <Text style={styles.liveTitle} numberOfLines={1}>{live.title}</Text>
-                </View>
+          <View style={{ flexDirection: 'row', gap: 16 }}>
+            {[
+              { name: 'Design Team', icon: '🎨', color: '#E91E63' },
+              { name: 'Gaming Hub', icon: '🎮', color: '#3498DB' },
+              { name: 'VEXRO Devs', icon: '💻', color: colors.accent },
+            ].map((item, i) => (
+              <TouchableOpacity key={i} style={styles.jumpCard} onPress={() => onNavigate('messages')}>
+                <Text style={{ fontSize: 24, marginBottom: 12 }}>{item.icon}</Text>
+                <Text style={styles.jumpName}>{item.name}</Text>
+                <Text style={styles.jumpStatus}>Active now</Text>
               </TouchableOpacity>
             ))}
           </View>
         </ScrollView>
 
-        <View style={[styles.mainGrid, isMobile && { flexDirection: 'column' }]}>
-          
-          {/* Left Column: Activity & Trending */}
-          <View style={styles.leftCol}>
-            {/* Recent Activity */}
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Friend Activity</Text>
-              <TouchableOpacity><Text style={styles.viewAll}>View all →</Text></TouchableOpacity>
-            </View>
-            <View style={styles.activityList}>
-              {ACTIVITY.map((a) => (
-                <View key={a.id} style={styles.activityItem}>
-                  <View style={[styles.avatar, { backgroundColor: a.color }]}><Text style={styles.avatarText}>{a.avatar}</Text></View>
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={styles.activityText}>
-                      <Text style={{ color: '#fff', fontWeight: '700' }}>{a.user}</Text> {a.action}
-                    </Text>
-                    <Text style={styles.activityTime}>{a.time}</Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-
-            {/* Trending Communities */}
-            <View style={[styles.sectionHeader, { marginTop: 32 }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <TrendingUp size={20} color={colors.accent} style={{ marginRight: 8 }} />
-                <Text style={styles.sectionTitle}>Trending Communities</Text>
+        {/* Discover Communities */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Discover Communities</Text>
+          <TouchableOpacity onPress={() => onNavigate('communities')}><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
+        </View>
+        <View style={styles.discoverList}>
+          {[
+            { name: 'Roblox Developers', members: '12.4k', tag: 'Gaming', color: '#3498DB' },
+            { name: 'Creator Lounge', members: '8.2k', tag: 'Art', color: '#9B59B6' },
+            { name: 'Late Night Lofi', members: '4.5k', tag: 'Music', color: '#F0B232' },
+          ].map((server, i) => (
+            <TouchableOpacity key={i} style={styles.discoverItem} onPress={() => onNavigate('communities')}>
+              <View style={[styles.discoverIcon, { backgroundColor: server.color }]}>
+                <Text style={styles.discoverIconText}>{server.name[0]}</Text>
               </View>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 16 }}>
-              {TRENDING.map((t) => (
-                <TouchableOpacity key={t.id} style={styles.trendingCard}>
-                  <Image source={{ uri: t.cover }} style={styles.trendingCover} />
-                  <View style={styles.trendingOverlay} />
-                  <View style={styles.trendingInfo}>
-                    <View style={[styles.commIconSmall, { backgroundColor: t.color }]}>
-                      <Text style={{ color: '#fff', fontWeight: '800' }}>{t.name[0]}</Text>
-                    </View>
-                    <View>
-                      <Text style={styles.trendingName}>{t.name}</Text>
-                      <Text style={styles.trendingMembers}>{t.members} Members</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* Right Column: Safety & Discover */}
-          <View style={styles.rightCol}>
-            <View style={styles.safetyCard}>
-              <Shield size={28} color={colors.success} />
-              <Text style={styles.safetyTitle}>You're protected.</Text>
-              <Text style={styles.safetyDesc}>All safety features are active. Manage your privacy in the Safety Center.</Text>
-              <TouchableOpacity style={styles.safetyBtn} onPress={() => onNavigate('safety')}>
-                <Text style={styles.safetyBtnText}>Go to Safety Center</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity style={styles.discoverCard} onPress={() => onNavigate('communities')}>
-              <View style={styles.discoverIcon}><Plus size={24} color="#fff" /></View>
-              <Text style={styles.discoverTitle}>Find Your People</Text>
-              <Text style={styles.discoverDesc}>Discover new communities, make friends, and join the conversation.</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.discoverName}>{server.name}</Text>
+                <Text style={styles.discoverMembers}>{server.members} Members</Text>
+              </View>
+              <View style={styles.discoverTag}>
+                <Text style={styles.discoverTagText}>{server.tag}</Text>
+              </View>
             </TouchableOpacity>
-          </View>
+          ))}
         </View>
 
       </ScrollView>
@@ -161,67 +135,58 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (view: string) 
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg2, borderRadius: 8, paddingHorizontal: 12, height: 36, flex: 0.4 },
-  searchInput: { flex: 1, color: colors.text, fontSize: 13, marginLeft: 8 },
-  topIcons: { flexDirection: 'row', alignItems: 'center' },
-  betaBadge: { backgroundColor: 'rgba(106, 92, 255, 0.15)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  betaText: { color: colors.accent, fontSize: 10, fontWeight: '800', letterSpacing: 1 },
+  
+  // Top Nav
+  topNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 32, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.border },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg2, borderRadius: 8, paddingHorizontal: 16, height: 40, flex: 0.4 },
+  searchInput: { flex: 1, color: colors.text, fontSize: 14, marginLeft: 12 },
+  topIcons: { flexDirection: 'row', gap: 12 },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
 
   scrollContent: { padding: 32 },
-  
-  heroBanner: { backgroundColor: '#111320', borderRadius: 20, padding: 32, marginBottom: 32, overflow: 'hidden', borderWidth: 1, borderColor: '#1F2235', position: 'relative' },
-  heroContent: { zIndex: 10 },
-  greeting: { color: '#fff', fontSize: 28, fontWeight: '800' },
-  subGreeting: { color: colors.textDim, fontSize: 15, marginTop: 8, marginBottom: 24 },
-  heroStats: { flexDirection: 'row', gap: 12 },
-  statPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, gap: 6 },
-  statPillText: { color: '#fff', fontSize: 12, fontWeight: '600' },
-  heroGlow: { position: 'absolute', top: -50, right: -50, width: 200, height: 200, backgroundColor: colors.accent, borderRadius: 100, opacity: 0.15, filter: 'blur(50px)' },
+  header: { marginBottom: 32 },
+  greeting: { color: colors.text, fontSize: 28, fontWeight: '800' },
+  subGreeting: { color: colors.textDim, fontSize: 15, marginTop: 8 },
 
+  // Bento Grid
+  bentoGrid: { flexDirection: 'row', gap: 16, marginBottom: 32 },
+  bentoLeft: { flex: 2 },
+  bentoRight: { flex: 1, gap: 16 },
+  
+  largeCard: { flex: 1, backgroundColor: colors.bg2, borderRadius: 16, padding: 24, borderWidth: 1, borderColor: colors.border },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
+  cardIconWrap: { width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(88, 101, 242, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  cardTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  
+  timeline: { flex: 1, gap: 20 },
+  timelineItem: { flexDirection: 'row', alignItems: 'flex-start' },
+  timelineDot: { width: 10, height: 10, borderRadius: 5, marginTop: 4, marginRight: 12 },
+  timelineText: { color: colors.textDim, fontSize: 14, lineHeight: 20 },
+  timelineTime: { color: colors.textMuted, fontSize: 12, marginTop: 4 },
+  
+  viewAllBtn: { flexDirection: 'row', alignItems: 'center', marginTop: 24, alignSelf: 'flex-start' },
+  viewAllText: { color: colors.accent, fontSize: 14, fontWeight: '600', marginRight: 4 },
+
+  smallCard: { flex: 1, backgroundColor: colors.bg2, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: colors.border, justifyContent: 'center' },
+  statIconWrap: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(35, 165, 89, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  statValue: { color: colors.text, fontSize: 28, fontWeight: '800', marginBottom: 4 },
+  statLabel: { color: colors.textDim, fontSize: 13, fontWeight: '600' },
+
+  // Sections
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   sectionTitle: { color: colors.text, fontSize: 18, fontWeight: '700' },
-  viewAll: { color: colors.accent, fontSize: 13, fontWeight: '600' },
 
-  liveCard: { width: 220, backgroundColor: colors.bg2, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: colors.border },
-  liveCover: { height: 120, backgroundColor: '#1A1D27', justifyContent: 'center', alignItems: 'center' },
-  liveAvatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  liveAvatarText: { color: '#fff', fontSize: 20, fontWeight: '800' },
-  liveBadge: { position: 'absolute', top: 12, left: 12, backgroundColor: colors.danger, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
-  liveBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
-  viewerBadge: { position: 'absolute', bottom: 12, right: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, gap: 4 },
-  viewerText: { color: '#fff', fontSize: 11, fontWeight: '700' },
-  liveInfo: { padding: 16 },
-  liveName: { color: colors.text, fontSize: 14, fontWeight: '700' },
-  liveTitle: { color: colors.textDim, fontSize: 12, marginTop: 4 },
+  jumpCard: { width: 160, backgroundColor: colors.bg2, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: colors.border },
+  jumpName: { color: colors.text, fontSize: 15, fontWeight: '700', marginBottom: 4 },
+  jumpStatus: { color: colors.success, fontSize: 12, fontWeight: '500' },
 
-  mainGrid: { flexDirection: 'row', gap: 32 },
-  leftCol: { flex: 2 },
-  rightCol: { flex: 1 },
-
-  activityList: { backgroundColor: colors.bg2, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.border },
-  activityItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
-  avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  activityText: { color: colors.textDim, fontSize: 14, lineHeight: 20 },
-  activityTime: { color: colors.textMuted, fontSize: 12, marginTop: 4 },
-
-  trendingCard: { flex: 1, height: 120, borderRadius: 16, overflow: 'hidden', position: 'relative' },
-  trendingCover: { width: '100%', height: '100%' },
-  trendingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
-  trendingInfo: { position: 'absolute', bottom: 16, left: 16, flexDirection: 'row', alignItems: 'center' },
-  commIconSmall: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  trendingName: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  trendingMembers: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
-
-  safetyCard: { backgroundColor: 'rgba(35, 165, 89, 0.1)', borderRadius: 16, padding: 24, borderWidth: 1, borderColor: 'rgba(35, 165, 89, 0.2)', marginBottom: 24, alignItems: 'center' },
-  safetyTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginTop: 16, marginBottom: 8 },
-  safetyDesc: { color: colors.textDim, fontSize: 13, textAlign: 'center', lineHeight: 20, marginBottom: 20 },
-  safetyBtn: { backgroundColor: colors.success, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
-  safetyBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
-
-  discoverCard: { backgroundColor: colors.bg2, borderRadius: 16, padding: 24, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
-  discoverIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  discoverTitle: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 8 },
-  discoverDesc: { color: colors.textDim, fontSize: 13, textAlign: 'center', lineHeight: 20 },
+  // Discover List
+  discoverList: { backgroundColor: colors.bg2, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 8 },
+  discoverItem: { flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
+  discoverIcon: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+  discoverIconText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  discoverName: { color: colors.text, fontSize: 15, fontWeight: '600' },
+  discoverMembers: { color: colors.textDim, fontSize: 13, marginTop: 2 },
+  discoverTag: { backgroundColor: colors.bg3, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  discoverTagText: { color: colors.textDim, fontSize: 11, fontWeight: '600' },
 });

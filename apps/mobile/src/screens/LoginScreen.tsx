@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
@@ -29,7 +29,7 @@ export default function LoginScreen({ navigation }: any) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.center}>
         <View style={styles.card}>
           <View style={styles.logoWrap}>
-            <ShieldCheck size={48} color={colors.accent} />
+            <Image source={require('../../assets/logo.png')} style={styles.logoImage} resizeMode='contain' />
             <Text style={styles.logo}>VEXRO</Text>
             <Text style={styles.subtitle}>Your people. Your space. Your rules.</Text>
           </View>
@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   card: { width: '90%', maxWidth: 440, backgroundColor: colors.bg2, padding: 40, borderRadius: 24, borderWidth: 1, borderColor: colors.border },
   logoWrap: { alignItems: 'center', marginBottom: 32 },
+  logoImage: { width: 120, height: 120 },
   logo: { color: '#fff', fontSize: 28, fontWeight: '900', letterSpacing: 2, marginTop: 12 },
   subtitle: { color: colors.textDim, fontSize: 13, marginTop: 8 },
   errorText: { color: colors.danger, fontSize: 13, textAlign: 'center', marginBottom: 16, fontWeight: '600' },

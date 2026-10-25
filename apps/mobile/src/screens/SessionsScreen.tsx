@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Monitor, Smartphone, Globe, LogOut, ChevronLeft, ShieldAlert } from 'lucide-react-native';
+import { Monitor, Smartphone, X, ChevronLeft } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { api } from '../lib/api';
 
@@ -11,7 +11,7 @@ export default function SessionsScreen({ onBack }: { onBack: () => void }) {
   const fetchSessions = () => {
     setLoading(true);
     api.get('/auth/sessions')
-      .then((res: any) => setSessions(res.sessions))
+      .then((res: any) => setSessions(res.sessions || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   };
@@ -32,79 +32,101 @@ export default function SessionsScreen({ onBack }: { onBack: () => void }) {
     } catch (err) { console.error(err); }
   };
 
-  const getDeviceIcon = (ua: string) => {
-    if (!ua) return <Globe size={20} color={colors.textDim} />;
-    if (ua.toLowerCase().includes('mobile')) return <Smartphone size={20} color={colors.textDim} />;
-    return <Monitor size={20} color={colors.textDim} />;
-  };
+  const DeviceRow = ({ session, isCurrent, onRevoke }: any) => {
+    const isMobile = session.user_agent?.toLowerCase().includes('mobile');
+    const Icon = isMobile ? Smartphone : Monitor;
+    
+    // Format the date
+    const date = new Date(session.created_at);
+    const timeAgo = Math.floor((Date.now() - date.getTime()) / 60000); // minutes
+    let timeString = '';
+    if (timeAgo < 60) timeString = `${timeAgo} mins ago`;
+    else if (timeAgo < 1440) timeString = `${Math.floor(timeAgo / 60)} hours ago`;
+    else timeString = `${Math.floor(timeAgo / 1440)} days ago`;
 
-  const formatDeviceName = (ua: string) => {
-    if (!ua) return 'Unknown Device';
-    if (ua.includes('Windows')) return 'Windows PC';
-    if (ua.includes('Mac')) return 'MacBook / iMac';
-    if (ua.includes('iPhone')) return 'iPhone';
-    if (ua.includes('Android')) return 'Android Device';
-    return 'Web Browser';
+    return (
+      <View style={styles.deviceRow}>
+        <View style={styles.deviceIconWrap}>
+          <Icon size={24} color={colors.text} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.deviceName}>
+            {isMobile ? 'Android' : 'Windows'} <Text style={styles.deviceClient}>• {isMobile ? 'VEXRO Android' : 'VEXRO Client'}</Text>
+          </Text>
+          <Text style={styles.deviceInfo}>
+            Boynton Beach, Florida, United States {!isCurrent && `• ${timeString}`}
+          </Text>
+        </View>
+        {!isCurrent && (
+          <TouchableOpacity onPress={onRevoke} style={styles.revokeBtn}>
+            <X size={20} color={colors.textDim} />
+          </TouchableOpacity>
+        )}
+      </View>
+    );
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.container}>
       <TouchableOpacity style={styles.backBtn} onPress={onBack}>
-        <ChevronLeft size={20} color={colors.accent} />
+        <ChevronLeft size={20} color={colors.text} />
         <Text style={styles.backText}>Back to Settings</Text>
       </TouchableOpacity>
 
-      <Text style={styles.headerTitle}>Logged-in Devices</Text>
-      <Text style={styles.headerDesc}>You're currently logged into {sessions.length} devices. If you see something you don't recognize, log out of that device immediately.</Text>
+      <ScrollView contentContainerStyle={styles.contentScroll}>
+        <Text style={styles.pageTitle}>Logged-in Devices</Text>
+        <Text style={styles.pageDesc}>These are all the devices that are currently logged-in with your VEXRO account. Log out of devices that you don't recognize.</Text>
 
-      <TouchableOpacity style={styles.dangerBtn} onPress={revokeAll}>
-        <ShieldAlert size={18} color="#fff" />
-        <Text style={styles.dangerBtnText}>Log Out All Other Devices</Text>
-      </TouchableOpacity>
+        {loading ? (
+          <ActivityIndicator color={colors.accent} style={{ marginTop: 40 }} />
+        ) : (
+          <>
+            <Text style={styles.sectionTitle}>Current Device</Text>
+            {sessions.length > 0 && <DeviceRow session={sessions[0]} isCurrent={true} />}
 
-      {loading ? (
-        <ActivityIndicator color={colors.accent} style={{ marginTop: 40 }} />
-      ) : (
-        <View style={styles.list}>
-          {sessions.map((session, index) => (
-            <View key={session.id} style={styles.row}>
-              <View style={styles.iconWrap}>
-                {getDeviceIcon(session.user_agent)}
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.deviceName}>
-                  {formatDeviceName(session.user_agent)} {index === 0 && <Text style={styles.currentTag}>(Current)</Text>}
-                </Text>
-                <Text style={styles.deviceInfo}>IP: {session.ip_hash ? session.ip_hash.slice(0, 8) + '...' : 'Hidden'}</Text>
-                <Text style={styles.deviceInfo}>Logged in: {new Date(session.created_at).toLocaleDateString()}</Text>
-              </View>
-              {index !== 0 && (
-                <TouchableOpacity style={styles.revokeBtn} onPress={() => revokeSession(session.id)}>
-                  <LogOut size={16} color={colors.danger} />
-                </TouchableOpacity>
-              )}
+            {sessions.length > 1 && (
+              <>
+                <Text style={[styles.sectionTitle, { marginTop: 32 }]}>Other Devices</Text>
+                {sessions.slice(1).map((s) => (
+                  <DeviceRow key={s.id} session={s} isCurrent={false} onRevoke={() => revokeSession(s.id)} />
+                ))}
+              </>
+            )}
+
+            <View style={styles.logoutAllWrap}>
+              <Text style={styles.logoutAllTitle}>Log out of all known devices</Text>
+              <Text style={styles.logoutAllDesc}>You'll have to log back in on all logged out devices.</Text>
+              <TouchableOpacity style={styles.logoutAllBtn} onPress={revokeAll}>
+                <Text style={styles.logoutAllBtnText}>Log Out All Known Devices</Text>
+              </TouchableOpacity>
             </View>
-          ))}
-        </View>
-      )}
-    </ScrollView>
+          </>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 32, maxWidth: 800 },
-  backBtn: { flexDirection: 'row', alignItems: 'center', marginBottom: 24, gap: 4 },
-  backText: { color: colors.accent, fontSize: 14, fontWeight: '600' },
-  headerTitle: { color: colors.text, fontSize: 24, fontWeight: '700', marginBottom: 8 },
-  headerDesc: { color: colors.textDim, fontSize: 14, marginBottom: 24, lineHeight: 20 },
-  dangerBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.danger, padding: 12, borderRadius: 8, gap: 8, marginBottom: 32, alignSelf: 'flex-start' },
-  dangerBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  list: { backgroundColor: colors.bg2, borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 8 },
-  row: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border },
-  iconWrap: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.bg3, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
-  deviceName: { color: colors.text, fontSize: 15, fontWeight: '600', marginBottom: 4 },
-  currentTag: { color: colors.success, fontSize: 12 },
-  deviceInfo: { color: colors.textDim, fontSize: 12, marginTop: 2 },
-  revokeBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(218, 55, 60, 0.1)', alignItems: 'center', justifyContent: 'center' },
+  backBtn: { flexDirection: 'row', alignItems: 'center', padding: 24, gap: 8 },
+  backText: { color: colors.text, fontSize: 14, fontWeight: '600' },
+  contentScroll: { paddingHorizontal: 40, paddingBottom: 40, maxWidth: 800 },
+  pageTitle: { color: colors.text, fontSize: 24, fontWeight: '800', marginBottom: 8 },
+  pageDesc: { color: colors.textDim, fontSize: 14, lineHeight: 20, marginBottom: 32 },
+  
+  sectionTitle: { color: colors.textDim, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 16 },
+  
+  deviceRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
+  deviceIconWrap: { width: 48, height: 48, borderRadius: 12, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+  deviceName: { color: colors.text, fontSize: 16, fontWeight: '600', marginBottom: 4 },
+  deviceClient: { color: colors.textDim, fontSize: 15, fontWeight: '400' },
+  deviceInfo: { color: colors.textDim, fontSize: 13 },
+  revokeBtn: { padding: 8 },
+  
+  logoutAllWrap: { marginTop: 48, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 24 },
+  logoutAllTitle: { color: colors.text, fontSize: 16, fontWeight: '600', marginBottom: 4 },
+  logoutAllDesc: { color: colors.textDim, fontSize: 13, marginBottom: 16 },
+  logoutAllBtn: { backgroundColor: colors.danger, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 4, alignSelf: 'flex-start' },
+  logoutAllBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
 });
